@@ -48,11 +48,11 @@ public class Reserve {
     @Schema(description = "Información del cliente que hace la reserva")
     private UserSummary client;
 
-    //@Schema(description = "Información del evento relacionado a la reserva")
-    // private EventSummary event;
+    @Schema(description = "Información del evento relacionado a la reserva")
+    private EventSummary event;
 
-    //@Schema(description = "Información del establecimiento donde se va a realizar la reserva")
-    // private establishmentSummary establishment;
+    @Schema(description = "Información del establecimiento donde se va a realizar la reserva")
+    private EstablishmentSummary establishment;
 
     @Schema(description = "Información de los servicios cubiertos de la reserva")
     private CoveredServices services;

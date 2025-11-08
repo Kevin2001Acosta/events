@@ -27,8 +27,13 @@ public class ReserveSummary {
     @Schema(description = "Estado de la reserva", example = "PROGRAMADA",  allowableValues = {"PROGRAMADA", "COMPLETADA", "CANCELADA"})
     private StatusReserve status;
 
-    // private EventSummary event;
-    //private establishmentSummary establishment;
+    @NotNull(message = "La información del evento es obligatoria")
+    @Schema(description = "Información mínima del evento asociado a la reserva")
+    private EventSummary event;
+
+    @NotNull(message = "La información del establecimiento es obligatoria")
+    @Schema(description = "Información mínima del establecimiento asociado a la reserva")
+    private EstablishmentSummary establishment;
 
     @NotNull(message = "La(s) fecha(s) de reserva son obligatorias")
     @Schema(description = "Fecha(s) de reserva", example = "[2025-03-03, 2025-03-04]")

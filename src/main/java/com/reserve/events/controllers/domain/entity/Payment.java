@@ -1,6 +1,7 @@
 package com.reserve.events.controllers.domain.entity;
 
 
+import com.reserve.events.controllers.domain.model.EstablishmentSummary;
 import com.reserve.events.controllers.domain.model.PaymentStatus;
 import com.reserve.events.controllers.domain.model.StatusReserve;
 import com.reserve.events.controllers.domain.model.UserSummary;
@@ -50,6 +51,9 @@ public class Payment {
     @Schema(description = "Servicios cubiertos por este pago")
     private CoveredServices coveredServices;
 
+    @NotNull(message = "La información del establecimiento es obligatoria")
+    @Schema(description = "Información mínima del establecimiento asociado a la reserva")
+    private EstablishmentSummary establishment;
     // Clases auxiliares que mapean la estructura de JSON proporcionada
 
     @Data
