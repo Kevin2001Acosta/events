@@ -27,7 +27,7 @@ public class Entertainment {
     @Schema(description = "Nombre del entretenimiento", example = "Payasos")
     private String name;
 
-    @NotBlank(message = "El tipo es obligatorio")
+    @NotNull(message = "El tipo es obligatorio")
     @Schema(description = "Tipo del entretenimiento", example = "ANIMADORES",  allowableValues = {"ANIMADORES", "MUSICOS", "BAILARINES"})
     private TypeEntertainment type;
 

@@ -23,7 +23,7 @@ public class Catering {
     @Id
     private String id;
 
-    @NotBlank(message = "El tipo de menu es obligatorio")
+    @NotNull(message = "El tipo de menu es obligatorio")
     @Schema(description = "Tipo de menu del servicio de comida", example = "VEGETARIANO", allowableValues = {"BUFFET", "VEGETARIANO", "INFANTIL", "GOURMET"})
     private MenuCatering menuType;
 
