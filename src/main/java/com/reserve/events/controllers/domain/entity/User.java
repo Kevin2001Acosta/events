@@ -1,6 +1,7 @@
 package com.reserve.events.controllers.domain.entity;
 
 import com.reserve.events.controllers.domain.model.PaymentStatus;
+import com.reserve.events.controllers.domain.model.ReserveSummary;
 import com.reserve.events.controllers.domain.model.UserType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
@@ -45,15 +46,13 @@ public class User {
     @Schema(description = "Tipo de usuario", example = "regular", allowableValues = {"CLIENTE", "ADMIN"})
     private UserType type;
 
-
     @NotBlank(message = "La contraseña es obligatoria")
     @Schema(description = "La contraseña del usuario para autenticación", example = "P@ssw0rd!")
     private String Password;
 
-
+    private List<ReserveSummary> eventBookings;
 
     private List<PaymentInfo> payments;
-
 
     public static class PaymentInfo {
 
@@ -69,11 +68,4 @@ public class User {
         @Schema(description = "Costo total del pago", example = "1500.0")
         private Double totalCost;
     }
-
-
-    // posibles nombres de las clases de los objetos de reservas y pagos, ambos tendrán servicios cubiertos
-    // TODO: Sería mejor poner solo el nombre del servicio en pagos y poner los datos de los servicios.
-    // private List<eventBookingSummary>  eventBookings;
-
-
 }
