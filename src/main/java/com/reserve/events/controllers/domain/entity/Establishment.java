@@ -1,6 +1,6 @@
 package com.reserve.events.controllers.domain.entity;
 
-import com.reserve.events.controllers.domain.entity.EstablishmentType;
+import com.reserve.events.controllers.domain.model.EstablishmentType;
 import com.reserve.events.controllers.domain.model.EventSummary;
 import com.reserve.events.controllers.domain.model.StatusReserve;
 import com.reserve.events.controllers.domain.model.UserSummary;
