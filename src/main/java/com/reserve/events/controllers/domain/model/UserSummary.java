@@ -12,6 +12,7 @@ import java.io.Serializable;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Schema(description = "Resumen de un usuario para ser incrustado en otras entidades")
 public class UserSummary implements Serializable{
     @Schema(description = "Id del cliente", example = "client_123")
     private String id;

@@ -2,6 +2,7 @@ package com.reserve.events.controllers.domain.entity;
 
 
 import com.reserve.events.controllers.domain.model.PaymentStatus;
+import com.reserve.events.controllers.domain.model.StatusReserve;
 import com.reserve.events.controllers.domain.model.UserSummary;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
@@ -63,7 +64,7 @@ public class Payment {
 
         @NotBlank(message = "El estado de la reserva es obligatorio")
         @Schema(description = "Estado de la reserva", example = "CONFIRMED")
-        private String status;
+        private StatusReserve status;
     }
 
     @Data
