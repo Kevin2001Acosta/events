@@ -2,21 +2,13 @@ package com.reserve.events.controllers.domain.entity;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
-
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 
 @Data
 @Builder
@@ -54,10 +46,30 @@ public class User {
     @Schema(description = "La contraseña del usuario para autenticación", example = "P@ssw0rd!")
     private String Password;
 
+
+
+    private List<PaymentInfo> payments;
+
+
+    public static class PaymentInfo {
+
+        @Schema(description = "Id del pago", example = "pay_123")
+        private String id;
+
+        @Schema(description = "Estado del pago", example = "PAID", allowableValues = {"Pendiente", "Completado", "Cancelado"})
+        private String status;
+
+        @Schema(description = "Descripción del pago", example = "Pago inicial por reserva de salón")
+        private String description;
+
+        @Schema(description = "Costo total del pago", example = "1500.0")
+        private Double totalCost;
+    }
+
+
     // posibles nombres de las clases de los objetos de reservas y pagos, ambos tendrán servicios cubiertos
     // TODO: Sería mejor poner solo el nombre del servicio en pagos y poner los datos de los servicios.
     // private List<eventBookingSummary>  eventBookings;
-    // private List<paymentSummary> payments;
 
 
 }
