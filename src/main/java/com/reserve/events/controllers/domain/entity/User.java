@@ -42,7 +42,7 @@ public class User {
     private String city;
 
     @NotBlank(message = "El tipo de usuario es obligatorio")
-    @Schema(description = "Tipo de usuario", example = "regular", allowableValues = {"CLIENTE", "ADMIN"})
+    @Schema(description = "Tipo de usuario", example = "CLIENTE", allowableValues = {"CLIENTE", "ADMIN"})
     private UserType type;
 
 
