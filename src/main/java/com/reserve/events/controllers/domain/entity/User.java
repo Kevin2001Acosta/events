@@ -1,5 +1,7 @@
 package com.reserve.events.controllers.domain.entity;
 
+import com.reserve.events.controllers.domain.model.PaymentStatus;
+import com.reserve.events.controllers.domain.model.UserType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -10,11 +12,13 @@ import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.util.List;
+
 @Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@Document(collection="usuarios")
+@Document(collection="Usuarios")
 @Schema(description = "Entidad que representa a un usuario, sus pagos y reservas hechas")
 public class User {
 
@@ -38,8 +42,8 @@ public class User {
     private String city;
 
     @NotBlank(message = "El tipo de usuario es obligatorio")
-    @Schema(description = "Tipo de usuario", example = "regular", allowableValues = {"client", "admin"})
-    private String type;
+    @Schema(description = "Tipo de usuario", example = "regular", allowableValues = {"CLIENTE", "ADMIN"})
+    private UserType type;
 
 
     @NotBlank(message = "La contraseña es obligatoria")
@@ -56,8 +60,8 @@ public class User {
         @Schema(description = "Id del pago", example = "pay_123")
         private String id;
 
-        @Schema(description = "Estado del pago", example = "PAID", allowableValues = {"Pendiente", "Completado", "Cancelado"})
-        private String status;
+        @Schema(description = "Estado del pago", example = "PAID", allowableValues = {"PENDIENTE", "COMPLETADO", "CANCELADO"})
+        private PaymentStatus status;
 
         @Schema(description = "Descripción del pago", example = "Pago inicial por reserva de salón")
         private String description;
