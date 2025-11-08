@@ -58,9 +58,9 @@ public class Reserve {
     private CoveredServices services;
 
     @Data
+    @Builder
     @NoArgsConstructor
     @AllArgsConstructor
-    @Builder
     public static class CoveredServices {
 
         @Schema(description = "Servicios de entretenimiento incluidos en este bloque")

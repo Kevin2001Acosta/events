@@ -50,12 +50,20 @@ public class User {
     @Schema(description = "La contraseña del usuario para autenticación", example = "P@ssw0rd!")
     private String Password;
 
+    @Schema(description = "Lista de las reservas hechas por el usuario")
     private List<ReserveSummary> eventBookings;
 
+    @Schema(description = "Lista de los pagos realizados por el usuario")
     private List<PaymentInfo> payments;
 
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Schema(description = "Información de un pago realizado por el usuario")
     public static class PaymentInfo {
 
+        @NotBlank(message = "El id del pago es obligatorio")
         @Schema(description = "Id del pago", example = "pay_123")
         private String id;
 
