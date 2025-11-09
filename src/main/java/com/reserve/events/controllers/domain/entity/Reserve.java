@@ -2,7 +2,6 @@ package com.reserve.events.controllers.domain.entity;
 
 import com.reserve.events.controllers.domain.model.*;
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -34,7 +33,6 @@ public class Reserve {
     @Schema(description = "Número de invitados", example = "80")
     private Integer guestNumber;
 
-    @Builder.Default
     @NotNull(message = "La(s) fecha(s) de reserva son obligatorias")
     @Schema(description = "Fecha(s) de reserva", example = "[2025-03-03, 2025-03-04]")
     private List<LocalDate> dates;
@@ -59,16 +57,15 @@ public class Reserve {
     private CoveredServices services;
 
     @Data
-    @Builder
     @NoArgsConstructor
     @AllArgsConstructor
+    @Builder
     public static class CoveredServices {
 
         @Builder.Default
         @Schema(description = "Servicios de entretenimiento incluidos en este bloque")
         private List<EntertainmentSummary> entertainment = new ArrayList<>();
 
-        @Builder.Default
         @Schema(description = "Decoración incluida en este bloque")
         private DecorationSummary decoration;
 
