@@ -6,6 +6,7 @@ import com.reserve.events.controllers.domain.model.UserType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -42,7 +43,7 @@ public class User {
     @Schema(description = "Ciudad donde vive", example = "Medellín")
     private String city;
 
-    @NotBlank(message = "El tipo de usuario es obligatorio")
+    @NotNull(message = "El tipo de usuario es obligatorio")
     @Schema(description = "Tipo de usuario", example = "CLIENTE", allowableValues = {"CLIENTE", "ADMIN"})
     private UserType type;
 
