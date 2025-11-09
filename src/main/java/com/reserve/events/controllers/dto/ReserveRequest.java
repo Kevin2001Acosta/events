@@ -1,11 +1,7 @@
 package com.reserve.events.controllers.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.reserve.events.controllers.domain.entity.Reserve;
-import com.reserve.events.controllers.domain.model.EstablishmentSummary;
-import com.reserve.events.controllers.domain.model.EventSummary;
 import com.reserve.events.controllers.domain.model.MenuCatering;
-import com.reserve.events.controllers.domain.model.StatusReserve;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.Builder;
@@ -13,7 +9,6 @@ import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 
 import jakarta.validation.constraints.*;
-import org.hibernate.validator.constraints.URL;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
