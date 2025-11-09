@@ -1,8 +1,10 @@
 package com.reserve.events.controllers;
 
 import com.reserve.events.aplication.UserService;
+import com.reserve.events.controllers.dto.LoginRequest;
 import com.reserve.events.controllers.dto.UserRequest;
 import com.reserve.events.controllers.response.UserCreatedResponse;
+import com.reserve.events.controllers.response.UserLoginResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -39,4 +41,18 @@ public class UserController {
         UserCreatedResponse response = userService.createUser(userRequest);
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
+
+    @PostMapping("/login")
+    @Operation(summary = "Crear un nuevo usuario")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "Usuario creado exitosamente"),
+            @ApiResponse(responseCode = "400", description = "Datos de entrada inválidos"),
+            @ApiResponse(responseCode = "409", description = "Ya existe un usuario con el email proporcionado")
+    })
+    public ResponseEntity<UserLoginResponse> loginUser(@Valid @RequestBody LoginRequest userLoginRequest) {
+
+        UserLoginResponse response = userService.loginUser(userLoginRequest);
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
 }

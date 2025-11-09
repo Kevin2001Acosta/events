@@ -1,6 +1,9 @@
 package com.reserve.events.config;
 
 import com.reserve.events.aplication.CustomUserDetailsService;
+import com.reserve.events.security.jwt.JwtAuthenticationFilter;
+// IMPORTANTE: Importamos HttpMethod para reglas más específicas
+import org.springframework.http.HttpMethod;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -13,14 +16,18 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+// clase contra la que registramos filtros
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity // Habilita la configuración de seguridad web de Spring
 public class SecurityConfig {
 
     private final CustomUserDetailsService customUserDetailsService;
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
-    public SecurityConfig(CustomUserDetailsService customUserDetailsService) {
+    public SecurityConfig(CustomUserDetailsService customUserDetailsService, JwtAuthenticationFilter jwtAuthenticationFilter) {
+        this.jwtAuthenticationFilter = jwtAuthenticationFilter;
         this.customUserDetailsService = customUserDetailsService;
     }
 
@@ -77,9 +84,23 @@ public class SecurityConfig {
                                 "/v3/api-docs/**"
                         ).permitAll()
 
-                        // Todas las demás peticiones (.anyRequest()) deben estar autenticadas
-                        .anyRequest().authenticated()
+                        // 2. Endpoints solo para ADMIN
+                        // (Ej. borrar usuarios, crear eventos)
+                        .requestMatchers("/addd/**", "/delete/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/even").hasRole("ADMIN")
+
+                        // 3. Endpoints solo para CLIENTE
+                        // (Ej. hacer una reserva, ver mi perfil)
+                        .requestMatchers("/reser/crear", "/usu/mi-perfil").hasRole("CLIENTE")
+
+                        // 4. Endpoints para AMBOS (ADMIN o CLIENTE)
+                        // (Ej. ver eventos)
+                        .requestMatchers(HttpMethod.GET, "/even/ver/**").hasAnyRole("ADMIN", "CLIENTE")
+
+                        // 5. CUALQUIER OTRA PETICIÓN
+                        .anyRequest().authenticated() // Requiere token (ADMIN o CLIENTE)
                 )
+                // --- FIN DE LA SECCIÓN DE AUTORIZACIÓN ---
 
                 /**
                  * 3. Configurar la gestión de sesión.
@@ -94,10 +115,10 @@ public class SecurityConfig {
                  * 4. Le decimos a Spring Security que use el proveedor de
                  * autenticación que configuramos en el BEAN 2.
                  */
-                .authenticationProvider(authenticationProvider());
+                .authenticationProvider(authenticationProvider())
 
         // (Aquí es donde se añadiría un filtro JWT si lo estuvieras usando)
-        // .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
