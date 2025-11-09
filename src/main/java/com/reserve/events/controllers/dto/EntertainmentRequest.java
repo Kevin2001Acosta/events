@@ -2,6 +2,7 @@ package com.reserve.events.controllers.dto;
 
 import com.reserve.events.controllers.domain.model.TypeEntertainment;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -44,6 +45,7 @@ public class EntertainmentRequest {
     @Size(min = 10, max = 500, message = "La descripción debe tener entre 10 y 500 caracteres")
     private String description;
 
+    @Min(1)
     @NotNull(message = "La tarifa por hora es obligatoria")
     @Schema(
             description = "Tarifa por hora del entretenimiento en pesos colombianos",

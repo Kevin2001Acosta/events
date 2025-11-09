@@ -13,8 +13,8 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class ReserveService {
 
-    @Transactional
-    public ReserveResponse createReserve(ReserveRequest request){
+    //@Transactional
+    //public ReserveResponse createReserve(ReserveRequest request){
 
         // Verificar si el cliente existe
 
@@ -34,5 +34,5 @@ public class ReserveService {
 
         // Agregar las fechas reservadas al establecimiento
 
-    }
+  //  }
 }

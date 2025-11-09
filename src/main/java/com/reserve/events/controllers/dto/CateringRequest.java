@@ -31,7 +31,7 @@ public class CateringRequest {
     @NotBlank(message = "La descripción es obligatoria")
     @Schema(
             description = "Descripción del servicio de comida",
-            example = "",
+            example = "Catering infantil premium con menú saludable: mini wraps de pollo, ensalada de frutas y limonada. Incluye estación de postres.",
             requiredMode = Schema.RequiredMode.REQUIRED)
     @Size(min = 10, max = 500, message = "La descripción debe tener entre 10 y 500 caracteres")
     private String description;
