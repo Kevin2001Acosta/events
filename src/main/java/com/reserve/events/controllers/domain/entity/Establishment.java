@@ -60,7 +60,6 @@ public class Establishment {
     @Schema(description = "URL de la imagen del establecimiento", example = "https://example.com/establishment-image.jpg")
     private String imageUrl;
 
-    @Builder.Default
     @Schema(description = "Lista de reservas asociadas al establecimiento")
     private List<ReserveSummary> bookings;
 
