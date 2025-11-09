@@ -18,14 +18,14 @@ public class EventService {
 
     // Imágenes predefinidas por tipo
     private final Map<String, String> predefinedEventImages = Map.of(
-            "Cumpleaños", "/cumpleaños.jpg",
+            "Cumpleaños", "/cumpleanos.jpg",
             "Bodas", "/bodas.jpg",
             "Grados", "/grados.jpg",
             "Bautizos", "/bautizos.jpg",
             "Fiesta infantil", "/infantil.jpg",
             "Baby shower", "/baby.jpg",
             "Fiesta de 15 años", "/fiesta15.jpg",
-            "Despedida de solter@", "/despedida.jpg",
+            "Despedida de solteros", "/despedida.jpg",
             "Conferencias y capacitaciones", "/conferencias.jpg",
             "Reunión corporativa", "/corporativa.jpg"
     );
@@ -43,10 +43,10 @@ public class EventService {
             throw new EventAlreadyExistsException("Ya existe un evento con el tipo: " + request.getType());
         }
 
-        // Asignar automáticamente la imagen
+        // Asignar la imagen
         String imageUrl = assignEventImage(request.getType());
 
-        // Guardar con type, description, imageUrl
+        // Guardar con type e imageUrl
         Event event = Event.builder()
                 .type(request.getType())
                 .imageUrl(imageUrl)
@@ -79,12 +79,11 @@ public class EventService {
         return mapToEventResponse(updatedEvent);
     }
 
-    //  Método para asignar imagen automáticamente
+    // Asignar imagen automáticamente (metodo)
     private String assignEventImage(String eventType) {
         return predefinedEventImages.getOrDefault(eventType, DEFAULT_IMAGE);
     }
 
-    // Mapear Entity a Response
     private EventResponse mapToEventResponse(Event event) {
         return EventResponse.builder()
                 .id(event.getId())

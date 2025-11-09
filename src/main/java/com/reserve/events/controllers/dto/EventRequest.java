@@ -11,7 +11,7 @@ import jakarta.validation.constraints.NotBlank;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Schema(description = "Solicitud para crear un evento")
+@Schema(description = "Solicitud para crear o actualizar un evento")
 public class EventRequest {
 
     @NotBlank(message = "El tipo de evento es obligatorio")
