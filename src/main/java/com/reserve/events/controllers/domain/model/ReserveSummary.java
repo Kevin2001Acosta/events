@@ -40,5 +40,5 @@ public class ReserveSummary {
     private List<LocalDate> dates;
 
     @Schema(description = "Información de los servicios cubiertos de la reserva")
-    private Reserve.CoveredServices services;
+    private CoveredServicesReserve services;
 }
