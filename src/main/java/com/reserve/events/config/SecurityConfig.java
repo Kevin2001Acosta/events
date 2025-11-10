@@ -100,7 +100,11 @@ public class SecurityConfig {
 
                         // 4. Endpoints para AMBOS (ADMIN o CLIENTE)
                         // (Ej. ver eventos)
-                        .requestMatchers(HttpMethod.GET, "/even/ver/**").hasAnyRole("ADMIN", "CLIENTE")
+                        .requestMatchers(HttpMethod.GET,
+                                "/adittional/**",
+                                "/catering/**",
+                                "/entertainment/**",
+                                "/decoration/**").hasAnyRole("ADMIN", "CLIENTE")
 
                         // 5. CUALQUIER OTRA PETICIÓN
                         .anyRequest().authenticated() // Requiere token (ADMIN o CLIENTE)

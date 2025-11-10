@@ -12,10 +12,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @Validated
 @RestController
@@ -36,5 +35,22 @@ public class AdittionalController {
     public ResponseEntity<AdittionalResponse> createAdittional(@Valid @RequestBody AdittionalRequest adittionalRequest){
         AdittionalResponse response = adittionalService.createAdittional(adittionalRequest);
         return new ResponseEntity<>(response, HttpStatus.CREATED);
+    }
+
+    @GetMapping
+    @Operation(summary = "Obtener todos los servicios adicionales")
+    @ApiResponse(responseCode = "200", description = "Lista de servicios obtenida exitosamente")
+    public ResponseEntity<List<AdittionalResponse>> getAllAdittional() {
+        return ResponseEntity.ok(adittionalService.getAllAdittional());
+    }
+
+    @GetMapping("/{id}")
+    @Operation(summary = "Obtener un servicio adicional por su ID")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Servicio encontrado"),
+            @ApiResponse(responseCode = "404", description = "Servicio no encontrado")
+    })
+    public ResponseEntity<AdittionalResponse> getAdittionalById(@PathVariable String id) {
+        return ResponseEntity.ok(adittionalService.getAdittionalById(id));
     }
 }
