@@ -1,6 +1,6 @@
 package com.reserve.events.security.jwt;
 
-import com.reserve.events.aplication.CustomUserDetailsService;
+import com.reserve.events.application.CustomUserDetailsService;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.SignatureException;

@@ -1,6 +1,6 @@
 package com.reserve.events.config;
 
-import com.reserve.events.aplication.CustomUserDetailsService;
+import com.reserve.events.application.CustomUserDetailsService;
 import com.reserve.events.security.jwt.JwtAuthenticationFilter;
 // IMPORTANTE: Importamos HttpMethod para reglas más específicas
 import org.springframework.http.HttpMethod;
