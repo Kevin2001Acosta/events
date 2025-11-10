@@ -1,4 +1,4 @@
-package com.reserve.events.application;
+package com.reserve.events.aplication;
 
 import com.reserve.events.controllers.domain.entity.Event;
 import com.reserve.events.controllers.domain.repository.EventRepository;
@@ -9,7 +9,6 @@ import com.reserve.events.controllers.exception.EventNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @Service
 public class EventService {

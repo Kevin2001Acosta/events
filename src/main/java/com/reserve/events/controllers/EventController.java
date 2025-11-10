@@ -2,26 +2,21 @@ package com.reserve.events.controllers;
 
 import com.reserve.events.controllers.dto.EventRequest;
 import com.reserve.events.controllers.dto.EventResponse;
-import com.reserve.events.application.EventService;
+import com.reserve.events.aplication.EventService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 
-import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/events")
+@RequestMapping("/events")
 @Tag(name = "Eventos", description = "Gestión de eventos")
 public class EventController {
 
@@ -31,7 +26,7 @@ public class EventController {
     @PostMapping
     @Operation(summary = "Crear un nuevo evento")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Evento creado exitosamente"),
+            @ApiResponse(responseCode = "201", description = "Evento creado exitosamente"),
             @ApiResponse(responseCode = "400", description = "Datos de entrada inválidos"),
             @ApiResponse(responseCode = "409", description = "Ya existe un evento con este tipo")
     })
