@@ -24,11 +24,11 @@ public class Catering {
     private String id;
 
     @NotNull(message = "El tipo de menu es obligatorio")
-    @Schema(description = "Tipo de menu del servicio de comida", example = "VEGETARIANO", allowableValues = {"BUFFET", "VEGETARIANO", "INFANTIL", "GOURMET"})
+    @Schema(description = "Tipo de menu del servicio de comida", example = "INFANTIL", allowableValues = {"BUFFET", "VEGETARIANO", "INFANTIL", "GOURMET"})
     private MenuCatering menuType;
 
     @NotBlank(message = "La descripción es obligatoria")
-    @Schema(description = "Descripción del servicio de comida", example = "")
+    @Schema(description = "Descripción del servicio de comida", example = "Catering infantil premium con menú saludable: mini wraps de pollo, ensalada de frutas y limonada. Incluye estación de postres.")
     @Size(min = 10, max = 500, message = "La descripción debe tener entre 10 y 500 caracteres")
     private String description;
 

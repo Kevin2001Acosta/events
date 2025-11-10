@@ -1,9 +1,6 @@
 package com.reserve.events.controllers.domain.entity;
 
-import com.reserve.events.controllers.domain.model.EstablishmentType;
-import com.reserve.events.controllers.domain.model.EventSummary;
-import com.reserve.events.controllers.domain.model.StatusReserve;
-import com.reserve.events.controllers.domain.model.UserSummary;
+import com.reserve.events.controllers.domain.model.*;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -12,6 +9,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDate;
@@ -28,6 +26,7 @@ public class Establishment {
     @Id
     private String id;
 
+    @Indexed(unique = true)
     @NotBlank(message = "El nombre del establecimiento es obligatorio")
     @Schema(description = "Nombre del establecimiento", example = "Salón de eventos Primavera")
     private String name;
@@ -89,6 +88,6 @@ public class Establishment {
         private List<LocalDate> dates;
 
         @Schema(description = "Información de los servicios cubiertos de la reserva")
-        private Reserve.CoveredServices services;
+        private CoveredServicesReserve services;
     }
 }

@@ -10,6 +10,7 @@ import org.springframework.scheduling.annotation.EnableAsync;
 @EnableCaching
 public class EventsApplication {
 
+
     public static void main(String[] args) {
         SpringApplication.run(EventsApplication.class, args);
     }
