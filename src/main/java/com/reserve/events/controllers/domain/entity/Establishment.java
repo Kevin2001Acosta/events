@@ -59,6 +59,10 @@ public class Establishment {
     @Schema(description = "URL de la imagen del establecimiento", example = "https://example.com/establishment-image.jpg")
     private String imageUrl;
 
+    @NotNull
+    @Schema(description = "Indica si el establecimiento está activo (borrado lógico)", example = "true")
+    private Boolean active = true;
+
     @Schema(description = "Lista de reservas asociadas al establecimiento")
     private List<ReserveSummary> bookings;
 
