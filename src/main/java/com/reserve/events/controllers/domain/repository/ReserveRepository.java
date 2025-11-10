@@ -7,7 +7,7 @@ import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
 import java.util.Optional;
 
-@Repository
+
 public interface ReserveRepository extends MongoRepository<Reserve, String> {
     Optional<Reserve> findById(String id);
     Reserve save(Reserve reserva);
