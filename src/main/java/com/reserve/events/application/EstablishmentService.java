@@ -3,10 +3,13 @@ package com.reserve.events.application;
 import com.reserve.events.controllers.domain.entity.Establishment;
 import com.reserve.events.controllers.domain.repository.EstablishmentRepository;
 import com.reserve.events.controllers.dto.EstablishmentRequest;
+import com.reserve.events.controllers.exception.EstablishmentNotFoundException;
 import com.reserve.events.controllers.response.EstablishmentResponse;
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -89,6 +92,41 @@ public class EstablishmentService {
         // En vez de borrarlo de la base de datos, lo marcamos como inactivo
         establishment.setActive(false);
         establishmentRepository.save(establishment);
+    }
+
+    /** Obtiene las fechas ocupadas de un establecimiento por su ID
+     *
+     * @param id ID del establecimiento
+     * @return Lista de fechas ocupadas (futuras y presentes) sin duplicados y ordenadas
+     * @throws EstablishmentNotFoundException si el establecimiento no existe o está inactivo
+     */
+    public List<LocalDate> getOccupiedDatesByEstablishmentId(String id){
+        // TODO: obtener las fechas solo si el establecimiento está activo
+        // un establecimeinto inactivo no puede tener fechas futuras ocupadas
+        Establishment establishment = establishmentRepository.findByIdAndActiveTrue(id)
+                .orElseThrow(() -> new EstablishmentNotFoundException("Establecimiento no encontrado o inactivo"));
+
+        return establishment.getBookings().stream()
+                .flatMap(reserveSummary -> reserveSummary.getDates().stream()) // Unir todas las listas de fechas
+                .filter(date -> !date.isBefore(LocalDate.now())) // Filtrar fechas >= hoy
+                .distinct() // Eliminar fechas duplicadas
+                .sorted() // Ordenar las fechas
+                .toList();
+    }
+
+    /** Verifica si las fechas solicitadas están disponibles para un establecimiento
+     *
+     * @param requestedDates Lista de fechas solicitadas
+     * @param establishmentId ID del establecimiento
+     * @return true si todas las fechas están disponibles osea no hacen match con las ocupadas, false si alguna está ocupada
+     */
+    public boolean areDatesAvailableForEstablishment(List<LocalDate> requestedDates, String establishmentId) {
+
+        // Obtener las fechas del establecimiento ocupadas
+        List<LocalDate> occupiedDates = getOccupiedDatesByEstablishmentId(establishmentId);
+
+        // Verificar si alguna de las fechas solicitadas está en las ocupadas
+        return requestedDates.stream().noneMatch(occupiedDates::contains);
     }
 
 

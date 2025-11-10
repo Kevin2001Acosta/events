@@ -14,6 +14,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @Validated
@@ -101,4 +103,22 @@ public class EstablishmentController {
         establishmentService.deleteEstablishment(id);
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("/{id}/occupied-dates")
+    @Operation(summary = "Obtener las fechas ocupadas de un establecimiento por ID")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Fechas obtenidas exitosamente"),
+            @ApiResponse(responseCode = "404", description = "Establecimiento no encontrado")
+    })
+    public ResponseEntity<List<String>> getOccupiedDatesByEstablishmentId(@PathVariable String id) {
+        List<LocalDate> datesOccupies = establishmentService.getOccupiedDatesByEstablishmentId(id);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
+        return ResponseEntity.ok(
+                datesOccupies.stream()
+                        .map(date -> date.atStartOfDay().format(formatter)).toList()
+        );
+    }
+
+
 }
