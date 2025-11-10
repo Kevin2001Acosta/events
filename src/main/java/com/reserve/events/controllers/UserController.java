@@ -1,6 +1,6 @@
 package com.reserve.events.controllers;
 
-import com.reserve.events.aplication.UserService;
+import com.reserve.events.application.UserService;
 import com.reserve.events.controllers.dto.LoginRequest;
 import com.reserve.events.controllers.dto.UserRequest;
 import com.reserve.events.controllers.response.UserCreatedResponse;

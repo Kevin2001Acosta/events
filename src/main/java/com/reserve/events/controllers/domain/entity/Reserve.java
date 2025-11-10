@@ -2,7 +2,6 @@ package com.reserve.events.controllers.domain.entity;
 
 import com.reserve.events.controllers.domain.model.*;
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -12,7 +11,6 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
 
 @Data
@@ -55,27 +53,5 @@ public class Reserve {
     private EstablishmentSummary establishment;
 
     @Schema(description = "Información de los servicios cubiertos de la reserva")
-    private CoveredServices services;
-
-    @Data
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class CoveredServices {
-
-        @Builder.Default
-        @Schema(description = "Servicios de entretenimiento incluidos en este bloque")
-        private List<EntertainmentSummary> entertainment = new ArrayList<>();
-
-        @Schema(description = "Decoración incluida en este bloque")
-        private DecorationSummary decoration;
-
-        @Builder.Default
-        @Schema(description = "Catering incluido en este bloque")
-        private List<CateringSummary> catering = new ArrayList<>();
-
-        @Builder.Default
-        @Schema(description = "Servicios adicionales incluidos en este bloque")
-        private List<AdittionalSummary> additionalServices = new ArrayList<>();
-    }
+    private CoveredServicesReserve services;
 }
