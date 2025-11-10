@@ -26,7 +26,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class UserController {
 
-    // TODO: Crear UserService
     private final UserService userService;
 
     @PostMapping("/register")
@@ -43,11 +42,11 @@ public class UserController {
     }
 
     @PostMapping("/login")
-    @Operation(summary = "Crear un nuevo usuario")
+    @Operation(summary = "Logear un usuario")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "201", description = "Usuario creado exitosamente"),
+            @ApiResponse(responseCode = "201", description = "Usuario logeado exitosamente"),
             @ApiResponse(responseCode = "400", description = "Datos de entrada inválidos"),
-            @ApiResponse(responseCode = "409", description = "Ya existe un usuario con el email proporcionado")
+            @ApiResponse(responseCode = "409", description = "Credenciales incorrectas")
     })
     public ResponseEntity<UserLoginResponse> loginUser(@Valid @RequestBody LoginRequest userLoginRequest) {
 

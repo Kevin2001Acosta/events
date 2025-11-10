@@ -92,11 +92,13 @@ public class SecurityConfig {
                                 "/decoration",
                                 "/additional").hasRole("ADMIN")
 
-                        // 3. Endpoints solo para CLIENTE
+                        // 3. Endpoints solo para CLIENTE, Para cualquier endpoint con esta ruta
+                        // No importa el method HTTP
                         // (Ej. hacer una reserva, ver mi perfil)
                         .requestMatchers("/reser/crear", "/usu/mi-perfil").hasRole("CLIENTE")
 
                         // 4. Endpoints para AMBOS (ADMIN o CLIENTE)
+                        // solo para los endpoint get con esta ruta
                         // (Ej. ver eventos)
                         .requestMatchers(HttpMethod.GET, "/even/ver/**").hasAnyRole("ADMIN", "CLIENTE")
 

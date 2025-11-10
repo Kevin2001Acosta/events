@@ -1,31 +1,30 @@
 package com.reserve.events.controllers;
 
+import com.reserve.events.controllers.domain.entity.Event;
 import com.reserve.events.controllers.dto.EventRequest;
 import com.reserve.events.controllers.dto.EventResponse;
 import com.reserve.events.application.EventService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
-import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
-@RequestMapping("/api/events")
+@RequestMapping("/events")
 @Tag(name = "Eventos", description = "Gestión de eventos")
+@RequiredArgsConstructor
 public class EventController {
 
-    @Autowired
+
     private EventService eventService;
 
     @PostMapping
@@ -51,5 +50,20 @@ public class EventController {
     public ResponseEntity<EventResponse> updateEvent(@PathVariable String id, @Valid @RequestBody EventRequest request) {
         EventResponse response = eventService.updateEvent(id, request);
         return ResponseEntity.ok(response);
+    }
+
+    // TODO: Falta ponerlo en el filtro de seguridad, solo los admin pueden eliminar eventos
+    @DeleteMapping("/{id}")
+    @Operation(summary = "Eliminar un evento (Solo administrador)")
+    public ResponseEntity<String> eliminarEvento(@PathVariable String id) {
+        String eventoId = eventService.eliminarEvento(id);
+        return ResponseEntity.ok("Evento con ID " + eventoId + " eliminado exitosamente.");
+    }
+
+    @GetMapping
+    @Operation(summary = "Listar todos los eventos")
+    public ResponseEntity<List<Event>> listarEventos() {
+        List<Event> eventos = eventService.listarTodosLosEventos();
+        return ResponseEntity.ok(eventos);
     }
 }

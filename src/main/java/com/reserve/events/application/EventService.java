@@ -1,20 +1,26 @@
 package com.reserve.events.application;
 
 import com.reserve.events.controllers.domain.entity.Event;
+import com.reserve.events.controllers.domain.model.StatusReserve;
 import com.reserve.events.controllers.domain.repository.EventRepository;
+import com.reserve.events.controllers.domain.repository.ReserveRepository;
 import com.reserve.events.controllers.dto.EventRequest;
 import com.reserve.events.controllers.dto.EventResponse;
 import com.reserve.events.controllers.exception.EventAlreadyExistsException;
 import com.reserve.events.controllers.exception.EventNotFoundException;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class EventService {
 
     private final EventRepository eventRepository;
+    private final ReserveRepository reserveRepository;
 
     // Imágenes predefinidas por tipo
     private final Map<String, String> predefinedEventImages = Map.of(
@@ -32,9 +38,6 @@ public class EventService {
 
     private final String DEFAULT_IMAGE = "/default.jpg";
 
-    public EventService(EventRepository eventRepository) {
-        this.eventRepository = eventRepository;
-    }
 
     public EventResponse createEvent(EventRequest request) {
 
@@ -91,4 +94,24 @@ public class EventService {
                 .imageUrl(event.getImageUrl())
                 .build();
     }
+
+    public String eliminarEvento(String id) {
+        // Verificar que el evento exista
+        if (!eventRepository.existsById(id)) {
+            throw new RuntimeException("Evento no encontrado con ID: " + id);
+        }
+        // Verificar si tiene reservas activas (con estado "PROGRAMADA")
+        long reservasActivas = reserveRepository.countByEventIdAndStatus(id, StatusReserve.PROGRAMADA);
+        if (reservasActivas > 0) {
+            throw new RuntimeException("No se puede eliminar el evento porque tiene reservas activas asociadas.");
+        }
+        // Eliminar el evento
+        eventRepository.deleteById(id);
+
+        return id;
+    }
+    public List<Event> listarTodosLosEventos() {
+        return eventRepository.findAll();
+    }
+
 }
