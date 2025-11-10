@@ -6,22 +6,24 @@ import com.reserve.events.aplication.EventService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.springframework.http.ResponseEntity;
 
+@Validated
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/events")
 @Tag(name = "Eventos", description = "Gestión de eventos")
 public class EventController {
 
-    @Autowired
-    private EventService eventService;
+
+    private final EventService eventService;
 
     @PostMapping
     @Operation(summary = "Crear un nuevo evento")

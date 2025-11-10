@@ -92,7 +92,9 @@ public class SecurityConfig {
                                 "/decoration",
                                 "/additional").hasRole("ADMIN")
 
-                        // 3. Endpoints solo para CLIENTE
+                        .requestMatchers("/add/**", "/delete", "/events", "/events/**").hasRole("ADMIN")
+
+                                // 3. Endpoints solo para CLIENTE
                         // (Ej. hacer una reserva, ver mi perfil)
                         .requestMatchers("/reser/crear", "/usu/mi-perfil").hasRole("CLIENTE")
 
