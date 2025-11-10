@@ -88,7 +88,7 @@ public class Establishment {
         private EventSummary event;
 
         @NotNull(message = "La(s) fecha(s) de reserva son obligatorias")
-        @Schema(description = "Fecha(s) de reserva", example = "[2025-03-03, 2025-03-04]")
+        @Schema(description = "Fecha(s¿) de reserva", example = "[2025-03-03, 2025-03-04]")
         private List<LocalDate> dates;
 
         @Schema(description = "Información de los servicios cubiertos de la reserva")
