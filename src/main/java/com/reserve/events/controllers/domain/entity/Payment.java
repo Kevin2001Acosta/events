@@ -77,15 +77,18 @@ public class Payment {
     @Builder
     public static class CoveredServices {
 
+        @Builder.Default
         @Schema(description = "Servicios de entretenimiento incluidos en este bloque")
         private List<EntertainmentInfo> entertainment = new ArrayList<>();
 
         @Schema(description = "Decoración incluida en este bloque")
         private Decoration decoration;
 
+        @Builder.Default
         @Schema(description = "Catering incluido en este bloque")
         private List<CateringInfo> catering = new ArrayList<>();
 
+        @Builder.Default
         @Schema(description = "Servicios adicionales incluidos en este bloque")
         private List<additionalInfo> additionalServices = new ArrayList<>();
     }
