@@ -28,16 +28,16 @@ public class PaymentService {
      */
     @Transactional
     public PaymentResponse createPayment(PaymentRequest request) {
-        // Verificar si ya existe un pago con la misma descripción (opcional)
-        if (paymentRepository.existsByDescription(request.getDescription())) {
+        // Verificar si ya existe un pago asociado a la reserva
+        if (paymentRepository.existsByReserve_Id(request.getReserve().getId())) {
             throw new ServiceAlreadyExistsException(
-                "Ya existe un pago registrado con la descripción: " + request.getDescription());
+                "Ya existe un pago registrado para la reserva con ID: " + request.getReserve().getId());
         }
 
         // Mapear el request a la entidad Payment
         Payment payment = Payment.builder()
                 .description(request.getDescription())
-                .status(PaymentStatus.PENDING)
+                .status(PaymentStatus.PENDIENTE)
                 .totalCost(request.getTotalCost())
                 .client(request.getClient())
                 .reserve(request.getReserve())
