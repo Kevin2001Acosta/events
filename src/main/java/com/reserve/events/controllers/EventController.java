@@ -3,7 +3,7 @@ package com.reserve.events.controllers;
 import com.reserve.events.controllers.domain.entity.Event;
 import com.reserve.events.controllers.dto.EventRequest;
 import com.reserve.events.controllers.dto.EventResponse;
-import com.reserve.events.aplication.EventService;
+import com.reserve.events.application.EventService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -53,7 +53,6 @@ public class EventController {
         return ResponseEntity.ok(response);
     }
 
-    // TODO: Falta ponerlo en el filtro de seguridad, solo los admin pueden eliminar eventos
     @DeleteMapping("/{id}")
     @Operation(summary = "Eliminar un evento (Solo administrador)")
     public ResponseEntity<String> eliminarEvento(@PathVariable String id) {

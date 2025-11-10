@@ -12,6 +12,7 @@ import org.springframework.security.authentication.dao.DaoAuthenticationProvider
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -45,8 +46,7 @@ public class SecurityConfig {
      */
     @Bean
     public AuthenticationProvider authenticationProvider() {
-        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
-        authProvider.setUserDetailsService(customUserDetailsService);
+        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider(customUserDetailsService);
         authProvider.setPasswordEncoder(passwordEncoder());
         return authProvider;
     }
@@ -65,13 +65,13 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                /**
+                /*
                  * 1. Deshabilitar CSRF (Cross-Site Request Forgery).
                  * Es común deshabilitarlo para APIs REST stateless (que no usan sesiones).
                  */
-                .csrf(csrf -> csrf.disable())
+                .csrf(AbstractHttpConfigurer::disable)
 
-                /**
+                /*
                  * 2. Configurar las reglas de autorización.
                  * Aquí defines qué rutas son públicas y cuáles son privadas.
                  */
@@ -90,10 +90,12 @@ public class SecurityConfig {
                                 "/entertainment",
                                 "/catering",
                                 "/decoration",
-                                "/additional").hasRole("ADMIN")
+                                "/additional",
+                                "/events").hasRole("ADMIN")
 
                         // 2. Endpoints solo para ADMIN cualquier endpoint con la ruta
-                        .requestMatchers("/events", "/events/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/events/{id}").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/events/{id}").hasRole("ADMIN")
 
                         // 3. Endpoints solo para CLIENTE
                         // (Ej. hacer una reserva, ver mi perfil)
@@ -101,16 +103,17 @@ public class SecurityConfig {
                         .requestMatchers("/Ruta-ejemplo").hasRole("CLIENTE")
 
                         // 4. Endpoints para AMBOS (ADMIN o CLIENTE)
+                        .requestMatchers("/reserve/{id}/cancelar").hasAnyRole("ADMIN", "CLIENTE")
+
                         // solo para los endpoint get con esta ruta
-                        // TODO: quitar la ruta de ejemplo cuando pongan una ruta real
-                        .requestMatchers(HttpMethod.GET, "/Ruta-Ejemplo").hasAnyRole("ADMIN", "CLIENTE")
+                        .requestMatchers(HttpMethod.GET, "/events").hasAnyRole("ADMIN", "CLIENTE")
 
                         // 5. CUALQUIER OTRA PETICIÓN
                         .anyRequest().authenticated() // Requiere token (ADMIN o CLIENTE)
                 )
                 // --- FIN DE LA SECCIÓN DE AUTORIZACIÓN ---
 
-                /**
+                /*
                  * 3. Configurar la gestión de sesión.
                  * Para una API REST, se usa STATELESS (sin estado).
                  * Spring no creará ni usará sesiones HTTP.
@@ -119,7 +122,7 @@ public class SecurityConfig {
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
 
-                /**
+                /*
                  * 4. Le decimos a Spring Security que use el proveedor de
                  * autenticación que configuramos en el BEAN 2.
                  */

@@ -23,7 +23,6 @@ public class ReserveController {
 
     private final ReserveService reserveService;
 
-    // TODO: falta ponerlo en el filtro de seguridad para que solo accedan usuarios autenticados ADMIN o CLIENTE
     @PatchMapping("/{id}/cancelar")
     @Operation(summary = "Cancelar una reserva")
     public ResponseEntity<Reserve> cancelarReserva(@AuthenticationPrincipal UserDetails userDetails, @PathVariable String id) {
