@@ -84,7 +84,7 @@ public class SecurityConfig {
                                 "/v3/api-docs/**"
                         ).permitAll()
 
-                        // 2. Endpoints solo para ADMIN
+                        // 2. Endpoints solo para POST ADMIN
                         // (Ej. borrar usuarios, crear eventos)
                         .requestMatchers(HttpMethod.POST,
                                 "/entertainment",
@@ -92,15 +92,18 @@ public class SecurityConfig {
                                 "/decoration",
                                 "/additional").hasRole("ADMIN")
 
-                        // 3. Endpoints solo para CLIENTE, Para cualquier endpoint con esta ruta
-                        // No importa el method HTTP
+                        // 2. Endpoints solo para ADMIN cualquier endpoint con la ruta
+                        .requestMatchers("/events", "/events/**").hasRole("ADMIN")
+
+                        // 3. Endpoints solo para CLIENTE
                         // (Ej. hacer una reserva, ver mi perfil)
-                        .requestMatchers("/reser/crear", "/usu/mi-perfil").hasRole("CLIENTE")
+                        // TODO: quitar la ruta de ejemplo cuando pongan una ruta real
+                        .requestMatchers("/Ruta-ejemplo").hasRole("CLIENTE")
 
                         // 4. Endpoints para AMBOS (ADMIN o CLIENTE)
                         // solo para los endpoint get con esta ruta
-                        // (Ej. ver eventos)
-                        .requestMatchers(HttpMethod.GET, "/even/ver/**").hasAnyRole("ADMIN", "CLIENTE")
+                        // TODO: quitar la ruta de ejemplo cuando pongan una ruta real
+                        .requestMatchers(HttpMethod.GET, "/Ruta-Ejemplo").hasAnyRole("ADMIN", "CLIENTE")
 
                         // 5. CUALQUIER OTRA PETICIÓN
                         .anyRequest().authenticated() // Requiere token (ADMIN o CLIENTE)
