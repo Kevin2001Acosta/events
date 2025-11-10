@@ -1,5 +1,8 @@
 package com.reserve.events.application;
 
+import com.reserve.events.controllers.domain.entity.Reserve;
+import com.reserve.events.controllers.domain.model.StatusReserve;
+import com.reserve.events.controllers.domain.repository.PaymentRepository;
 import com.reserve.events.controllers.domain.repository.ReserveRepository;
 import com.reserve.events.controllers.domain.repository.UserRepository;
 import com.reserve.events.controllers.dto.ReserveRequest;
@@ -16,6 +19,18 @@ public class ReserveService {
 
     private final ReserveRepository reserveRepository;
 
-    //@Transactional
-    //public ReserveResponse createReserve(ReserveRequest request){}
+    private final PaymentRepository paymentRepository;
+
+    public Reserve cancelarReserva(String id) {
+        Reserve reserva = reserveRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Reserva no encontrada con ID: " + id));
+        if (reserva.getStatus() == StatusReserve.CANCELADA) {
+            throw new RuntimeException("La reserva ya está cancelada.");
+        }
+        // Actualizar estado
+        reserva.setStatus(StatusReserve.CANCELADA);
+        // Eliminar pago asociado
+        paymentRepository.findById(id);
+        return reserveRepository.save(reserva);
+    }
 }
