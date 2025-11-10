@@ -51,6 +51,6 @@ public class UserResponse {
         @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
         private List<LocalDate> dates;
 
-        private Reserve.CoveredServices services;
+        private CoveredServicesReserve services;
     }
 }

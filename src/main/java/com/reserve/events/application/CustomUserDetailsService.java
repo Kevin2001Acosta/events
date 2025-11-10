@@ -1,6 +1,5 @@
-package com.reserve.events.aplication;
+package com.reserve.events.application;
 
-import com.reserve.events.controllers.domain.entity.User;
 import com.reserve.events.controllers.domain.repository.UserRepository;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
