@@ -86,10 +86,15 @@ public class SecurityConfig {
 
                         // 2. Endpoints solo para ADMIN
                         // (Ej. borrar usuarios, crear eventos)
-                        .requestMatchers("/addd/**", "/delete/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.POST, "/even").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST,
+                                "/entertainment",
+                                "/catering",
+                                "/decoration",
+                                "/additional").hasRole("ADMIN")
 
-                        // 3. Endpoints solo para CLIENTE
+                        .requestMatchers("/add/**", "/delete", "/events", "/events/**").hasRole("ADMIN")
+
+                                // 3. Endpoints solo para CLIENTE
                         // (Ej. hacer una reserva, ver mi perfil)
                         .requestMatchers("/reser/crear", "/usu/mi-perfil").hasRole("CLIENTE")
 

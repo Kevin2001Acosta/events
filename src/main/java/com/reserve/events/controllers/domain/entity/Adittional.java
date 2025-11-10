@@ -8,6 +8,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.annotation.Id;
 
@@ -22,6 +23,7 @@ public class Adittional {
     @Id
     private String id;
 
+    @Indexed(unique = true)
     @NotBlank(message = "El nombre es obligatorio")
     @Schema(description = "Nombre del servicio adicional", example = "Fotógrafo profesional")
     private String name;

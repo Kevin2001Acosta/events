@@ -8,6 +8,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.data.mongodb.core.index.Indexed;
 
 @Data
 @Builder
@@ -19,6 +20,7 @@ public class EstablishmentSummary {
     @Schema(description = "Identificador único del establecimiento", example = "est_123")
     private String id;
 
+    @Indexed(unique = true)
     @NotBlank(message = "El nombre del establecimiento es obligatorio")
     @Schema(description = "Nombre del establecimiento", example = "Salón de eventos Primavera")
     private String name;
