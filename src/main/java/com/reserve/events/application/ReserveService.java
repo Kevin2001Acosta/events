@@ -27,6 +27,7 @@ public class ReserveService {
     private final PaymentRepository paymentRepository;
 
 
+    @Transactional
     public Reserve cancelarReserva(UserDetails userDetails, String id) {
         Reserve reserva = reserveRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Reserva no encontrada con ID: " + id));
@@ -50,8 +51,8 @@ public class ReserveService {
 
         // Actualizar estado a CANCELADA
         reserva.setStatus(StatusReserve.CANCELADA);
-        // TODO: Lógica adicional: eliminar pago (esto dependerá de cómo manejes el pago)
-        paymentRepository.deleteByReserveId(reserva.getId());
+        // eliminar Pago asociado a la reserva
+        paymentRepository.deletePaymentByReserve_Id(reserva.getId());
 
         return reserveRepository.save(reserva);
     }
