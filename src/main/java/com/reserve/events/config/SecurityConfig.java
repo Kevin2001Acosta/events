@@ -91,11 +91,12 @@ public class SecurityConfig {
                                 "/catering",
                                 "/decoration",
                                 "/additional",
+                                "/establishments",
                                 "/events").hasRole("ADMIN")
 
-                        // 2. Endpoints solo para ADMIN cualquier endpoint con la ruta
-                        .requestMatchers(HttpMethod.PUT, "/events/{id}").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/events/{id}").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/events/{id}", "/establishments/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/events/{id}", "/establishments/**").hasRole("ADMIN")
+
 
                         // 3. Endpoints solo para CLIENTE
                         // (Ej. hacer una reserva, ver mi perfil)
