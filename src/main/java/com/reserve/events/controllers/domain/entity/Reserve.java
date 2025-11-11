@@ -17,7 +17,7 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Document(collection = "Reserve")
+@Document(collection = "Reserva")
 @Schema(description = "Entidad que representa una reserva de un cliente.")
 public class Reserve {
 
@@ -43,12 +43,15 @@ public class Reserve {
     @Schema(description = "Comentarios sobre la reserva", example = "Comentario")
     private String comments;
 
+    @NotNull(message = "El cliente es obligatorio")
     @Schema(description = "Información del cliente que hace la reserva")
     private UserSummary client;
 
+    @NotNull(message = "El evento es obligatorio")
     @Schema(description = "Información del evento relacionado a la reserva")
     private EventSummary event;
 
+    @NotNull(message = "El establecimiento es obligatorio")
     @Schema(description = "Información del establecimiento donde se va a realizar la reserva")
     private EstablishmentSummary establishment;
 
