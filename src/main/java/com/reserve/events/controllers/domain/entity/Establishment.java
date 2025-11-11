@@ -2,8 +2,7 @@ package com.reserve.events.controllers.domain.entity;
 
 import com.reserve.events.controllers.domain.model.*;
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -29,22 +28,28 @@ public class Establishment {
 
     @Indexed(unique = true)
     @NotBlank(message = "El nombre del establecimiento es obligatorio")
+    @Size(max = 100, message = "El nombre no puede superar los 100 caracteres")
     @Schema(description = "Nombre del establecimiento", example = "Salón de eventos Primavera")
     private String name;
 
     @NotBlank(message = "La dirección del establecimiento es obligatoria")
+    @Size(max = 150, message = "La dirección no puede superar los 150 caracteres")
     @Schema(description = "Dirección del establecimiento", example = "Calle 123 #45-67")
     private String address;
 
     @NotBlank(message = "El teléfono del establecimiento es obligatorio")
+    @Pattern(regexp = "\\d{7,10}", message = "El teléfono debe tener entre 7 y 10 dígitos")
     @Schema(description = "Teléfono de contacto del establecimiento", example = "3001234567")
     private String phone;
 
     @NotBlank(message = "La ciudad del establecimiento es obligatoria")
+    @Size(max = 50, message = "La ciudad no puede superar los 50 caracteres")
     @Schema(description = "Ciudad donde se encuentra el establecimiento", example = "Bogotá")
     private String city;
 
     @NotNull(message = "La capacidad del establecimiento es obligatoria")
+    @Min(value = 10, message = "La capacidad mínima es 10")
+    @Max(value = 1000, message = "La capacidad máxima es 1000")
     @Schema(description = "Capacidad máxima del establecimiento", example = "200")
     private Integer capacity;
 
@@ -53,10 +58,13 @@ public class Establishment {
     private EstablishmentType type;
 
     @NotNull(message = "El costo del establecimiento es obligatorio")
+    @DecimalMin(value = "100.0", message = "El costo mínimo es 100")
+    @DecimalMax(value = "20000.0", message = "El costo máximo es 10000")
     @Schema(description = "Costo de alquiler del establecimiento", example = "1500.0")
     private Double cost;
 
     @NotBlank(message = "La URL de la imagen del establecimiento es obligatoria")
+    @Pattern(regexp = "^(http|https)://.*$", message = "La URL debe comenzar con http o https")
     @Schema(description = "URL de la imagen del establecimiento", example = "https://example.com/establishment-image.jpg")
     private String imageUrl;
 
@@ -90,7 +98,8 @@ public class Establishment {
         private EventSummary event;
 
         @NotNull(message = "La(s) fecha(s) de reserva son obligatorias")
-        @Schema(description = "Fecha(s¿) de reserva", example = "[2025-03-03, 2025-03-04]")
+        @Size(min = 1, message = "Debe haber al menos una fecha")
+        @Schema(description = "Fecha(s) de reserva", example = "[2025-03-03, 2025-03-04]")
         private List<LocalDate> dates;
 
         @Schema(description = "Información de los servicios cubiertos de la reserva")

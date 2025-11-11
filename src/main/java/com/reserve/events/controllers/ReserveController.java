@@ -40,7 +40,7 @@ public class ReserveController {
 
     @PatchMapping("/{id}/cancelar")
     @Operation(summary = "Cancelar una reserva")
-    public ResponseEntity<Reserve> cancelarReserva(@AuthenticationPrincipal UserDetails userDetails, @PathVariable String id) {
+    public ResponseEntity<Reserve> cancelReservation(@AuthenticationPrincipal UserDetails userDetails, @PathVariable String id) {
         Reserve reservaCancelada = reserveService.cancelarReserva(userDetails, id);
         return ResponseEntity.ok(reservaCancelada);
     }

@@ -6,6 +6,7 @@ import com.reserve.events.controllers.domain.repository.*;
 import com.reserve.events.controllers.dto.ReserveRequest;
 import com.reserve.events.controllers.exception.*;
 import com.reserve.events.controllers.response.ReserveResponse;
+import com.reserve.events.controllers.exception.UserNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -19,28 +20,33 @@ public class ReserveService {
 
     private final ReserveRepository reserveRepository;
     private final EventRepository eventRepository;
-    private final EstablishmentRepository establishmentRepository;
     private final UserRepository userRepository;
+    private final PaymentRepository paymentRepository;
+    private final EstablishmentRepository establishmentRepository;
     private final EstablishmentService establishmentService;
     private final EntertainmentRepository entertainmentRepository;
     private final DecorationRepository decorationRepository;
     private final CateringRepository cateringRepository;
     private final AdittionalRepository adittionalRepository;
 
+    // TO DO: Verificar que los invitados no excedan el cupo max del establecimiento
+    // TO DO: Agregar los errores que no están al global exception
+    // TO DO: Hacer el get de los servicios y la reserva
+
     @Transactional
     public ReserveResponse createReserve(ReserveRequest request, String email){
 
         // Validar que el cliente exista
         User user = userRepository.findByEmail(email)
-        .orElseThrow(() -> new UserNotFoundException("No existe un usuario con el correo: " + email));
+                .orElseThrow(() -> new UserNotFoundException("No existe un usuario con el correo: " + email));
 
         // Validar que el evento exista
         Event event = eventRepository.findById(request.getEventId())
-        .orElseThrow(() -> new EventNotFoundException("No existe un evento con el id: " + request.getEventId()));
+                .orElseThrow(() -> new EventNotFoundException("No existe un evento con el id: " + request.getEventId()));
 
         // Validar que el establecimiento exista
         Establishment establishment = establishmentRepository.findById(request.getEstablishmentId())
-        .orElseThrow(() -> new EstablishmentNotFoundException("No existe un establecimiento con el id: " + request.getEstablishmentId()));
+                .orElseThrow(() -> new EstablishmentNotFoundException("No existe un establecimiento con el id: " + request.getEstablishmentId()));
 
         // Validar que las fechas en las que se quiere reservar si estan disponibles
         boolean datesAvailable = establishmentService.areDatesAvailableForEstablishment(request.getDates(), request.getEstablishmentId());
@@ -133,16 +139,16 @@ public class ReserveService {
 
         // Mapear el ReserveRequest a la entidad Reserve
         Reserve reserve = Reserve.builder()
-        .status(status)
-        .guestNumber(request.getGuestNumber())
-        .dates(request.getDates())
-        .totalCost(costReserveTotal)
-        .comments(request.getComments())
-        .client(userSummary)
-        .event(eventSummary)
-        .establishment(establishmentSummary)
+                .status(status)
+                .guestNumber(request.getGuestNumber())
+                .dates(request.getDates())
+                .totalCost(costReserveTotal)
+                .comments(request.getComments())
+                .client(userSummary)
+                .event(eventSummary)
+                .establishment(establishmentSummary)
                 .services(covered)
-        .build();
+                .build();
 
         // Guardar la reserva
         Reserve savedReserve = reserveRepository.save(reserve);
@@ -277,6 +283,7 @@ public class ReserveService {
                 .build();
     }
 
+    @Transactional
     public Reserve cancelarReserva(UserDetails userDetails, String id) {
         Reserve reserva = reserveRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Reserva no encontrada con ID: " + id));
@@ -300,14 +307,40 @@ public class ReserveService {
 
         // Actualizar estado a CANCELADA
         reserva.setStatus(StatusReserve.CANCELADA);
-        // TODO: Lógica adicional: eliminar pago (esto dependerá de cómo manejes el pago)
-        eliminarPagoSiExiste(id);
+        // eliminar Pago asociado a la reserva
+        paymentRepository.deletePaymentByReserve_Id(reserva.getId());
+
+        // Actualizar el estado de la reserva en las reservas del usuario
+        updateReserveToCanceledInUser(reserva.getId(), user);
+
+        // Buscar el establecimiento y actualizar su reserva
+        updateReserveToCanceledInEstablishment(reserva.getEstablishment().getId(), reserva.getId());
+
+
 
         return reserveRepository.save(reserva);
     }
 
-    private void eliminarPagoSiExiste(String reservaId) {
-        System.out.println("Pago asociado a la reserva " + reservaId + " ha sido eliminado.");
+    private void updateReserveToCanceledInUser(String reservaId, User user) {
+        // Actualizar el estado de la reserva en las reservas del usuario
+        user.getEventBookings().stream()
+                .filter(booking -> booking.getId().equals(reservaId)) // Buscar la reserva por ID
+                .findFirst()
+                .ifPresent(booking -> booking.setStatus(StatusReserve.CANCELADA)); // Actualizar el estado
+
+        // Guardar los cambios en el usuario
+        userRepository.save(user);
+    }
+
+    private void updateReserveToCanceledInEstablishment(String establishmentId, String reservaId){
+        establishmentRepository.findById(establishmentId)
+                .ifPresent(establishment ->{
+                    establishment.getBookings().stream().filter(booking -> booking.getId().equals(reservaId))
+                            .findFirst()
+                            .ifPresent(booking -> booking.setStatus(StatusReserve.CANCELADA));
+                    // Guarda los cambios en el establecimiento
+                    establishmentRepository.save(establishment);
+                });
     }
 
     private ReserveResponse mapToReserveResponse(Reserve reserve) {

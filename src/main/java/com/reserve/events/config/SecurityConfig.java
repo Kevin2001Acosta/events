@@ -91,11 +91,12 @@ public class SecurityConfig {
                                 "/catering",
                                 "/decoration",
                                 "/additional",
+                                "/establishments",
                                 "/events").hasRole("ADMIN")
 
-                        // 2. Endpoints solo para ADMIN cualquier endpoint con la ruta
-                        .requestMatchers(HttpMethod.PUT, "/events/{id}").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/events/{id}").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/events/{id}", "/establishments/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/events/{id}", "/establishments/**").hasRole("ADMIN")
+
 
                         // 3. Endpoints solo para CLIENTE
                         // (Ej. hacer una reserva, ver mi perfil)
@@ -107,7 +108,7 @@ public class SecurityConfig {
                         .requestMatchers("/reserve/{id}/cancelar").hasAnyRole("ADMIN", "CLIENTE")
 
                         // solo para los endpoint get con esta ruta
-                        .requestMatchers(HttpMethod.GET, "/events", "establishments/{id}/occupied-dates").hasAnyRole("ADMIN", "CLIENTE")
+                        .requestMatchers(HttpMethod.GET, "/events", "/establishments/{id}/occupied-dates").hasAnyRole("ADMIN", "CLIENTE")
 
                         // 5. CUALQUIER OTRA PETICIÓN
                         .anyRequest().authenticated() // Requiere token (ADMIN o CLIENTE)

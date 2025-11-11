@@ -1,6 +1,5 @@
 package com.reserve.events.controllers;
 
-import com.reserve.events.controllers.domain.entity.Event;
 import com.reserve.events.controllers.dto.EventRequest;
 import com.reserve.events.controllers.dto.EventResponse;
 import com.reserve.events.application.EventService;
@@ -52,18 +51,25 @@ public class EventController {
         EventResponse response = eventService.updateEvent(id, request);
         return ResponseEntity.ok(response);
     }
-
     @DeleteMapping("/{id}")
     @Operation(summary = "Eliminar un evento (Solo administrador)")
-    public ResponseEntity<String> eliminarEvento(@PathVariable String id) {
-        String eventoId = eventService.eliminarEvento(id);
-        return ResponseEntity.ok("Evento con ID " + eventoId + " eliminado exitosamente.");
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Evento eliminado exitosamente"),
+            @ApiResponse(responseCode = "404", description = "Evento no encontrado"),
+            @ApiResponse(responseCode = "400", description = "No se puede eliminar porque tiene reservas activas")
+    })
+    public ResponseEntity<String> deleteEvent(@PathVariable String id) {
+        String deletedId = eventService.deleteEvent(id);
+        return ResponseEntity.ok("Evento con ID " + deletedId + " eliminado exitosamente.");
     }
 
     @GetMapping
     @Operation(summary = "Listar todos los eventos")
-    public ResponseEntity<List<Event>> listarEventos() {
-        List<Event> eventos = eventService.listarTodosLosEventos();
-        return ResponseEntity.ok(eventos);
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Lista de eventos devuelta exitosamente")
+    })
+    public ResponseEntity<List<EventResponse>> listEvents() {
+        List<EventResponse> events = eventService.listAllEvents();
+        return ResponseEntity.ok(events);
     }
 }
