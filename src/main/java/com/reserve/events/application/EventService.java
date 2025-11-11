@@ -96,16 +96,15 @@ public class EventService {
     }
     public String deleteEvent(String id) {
         Event event = eventRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Evento no encontrado con ID: " + id));
+                .orElseThrow(() -> new EventNotFoundException("Evento no encontrado con ID: " + id));
 
-        // Verificar que no tenga reservas activas (PROGRAMADA)
         long activeReservations = reserveRepository.countByEventIdAndStatus(id, StatusReserve.PROGRAMADA);
         if (activeReservations > 0) {
-            throw new RuntimeException("No se puede eliminar el evento porque tiene reservas activas asociadas.");
+            throw new com.reserve.events.controllers.exception.EventDeletionNotAllowedException("No se puede eliminar el evento porque tiene reservas activas asociadas.");
         }
 
         eventRepository.deleteById(id);
-        return id; // Retornar ID del evento eliminado
+        return id;
     }
 
     public List<EventResponse> listAllEvents() {

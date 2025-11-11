@@ -18,8 +18,10 @@ import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
 
 @ControllerAdvice
+@Slf4j
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     @Override
@@ -58,20 +60,70 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         body.put("path", request.getDescription(false).replace("uri=", ""));
 
         // Log the exception for debugging purposes
-        ex.printStackTrace();
+        log.error("Unhandled exception at {}", body.get("path"), ex);
 
         return new ResponseEntity<>(body, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-    @ExceptionHandler(ServiceAlreadyExistsException.class)
-    public ResponseEntity<Object> handleServiceAlreadyExistsException(ServiceAlreadyExistsException ex, WebRequest request) {
+    // 409 CONFLICT: agrupar todas las 'AlreadyExists' y conflictos de disponibilidad
+    @ExceptionHandler({
+            ServiceAlreadyExistsException.class,
+            AvailableEstablishmentNotFoundException.class,
+            EventAlreadyExistsException.class,
+            UserAlreadyExistsException.class,
+            EstablishmentAlreadyExistsException.class,
+            EstablishmentDeletionNotAllowedException.class,
+            EventDeletionNotAllowedException.class,
+            ReservationAlreadyCancelledException.class,
+            ReservationCompletedCannotCancelException.class
+    })
+    public ResponseEntity<Object> handleConflict(RuntimeException ex, WebRequest request) {
+        return buildConflictResponse(request, ex.getMessage());
+    }
+
+    @ExceptionHandler({
+            ForbiddenActionException.class
+    })
+    public ResponseEntity<Object> handleForbidden(RuntimeException ex, WebRequest request) {
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("timestamp", LocalDateTime.now());
+        body.put("status", HttpStatus.FORBIDDEN.value());
+        body.put("error", "Forbidden");
+        body.put("message", ex.getMessage());
+        body.put("path", request.getDescription(false).replace("uri=", ""));
+        return new ResponseEntity<>(body, HttpStatus.FORBIDDEN);
+    }
+
+    // 404 NOT FOUND: agrupar todas las 'NotFound'
+    @ExceptionHandler({
+            EventNotFoundException.class,
+            EstablishmentNotFoundException.class,
+            PaymentNotFoundException.class,
+            ReserveNotFoundException.class,
+            ServiceNotFoundException.class,
+            UserNotFoundException.class
+    })
+    public ResponseEntity<Object> handleNotFound(RuntimeException ex, WebRequest request) {
+        return buildNotFoundResponse(request, ex.getMessage());
+    }
+
+    private ResponseEntity<Object> buildNotFoundResponse(WebRequest request, String message) {
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("timestamp", LocalDateTime.now());
+        body.put("status", HttpStatus.NOT_FOUND.value());
+        body.put("error", "Not Found");
+        body.put("message", message);
+        body.put("path", request.getDescription(false).replace("uri=", ""));
+        return new ResponseEntity<>(body, HttpStatus.NOT_FOUND);
+    }
+
+    private ResponseEntity<Object> buildConflictResponse(WebRequest request, String message) {
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("timestamp", LocalDateTime.now());
         body.put("status", HttpStatus.CONFLICT.value());
         body.put("error", "Conflict");
-        body.put("message", ex.getMessage());
+        body.put("message", message);
         body.put("path", request.getDescription(false).replace("uri=", ""));
-
         return new ResponseEntity<>(body, HttpStatus.CONFLICT);
     }
 
@@ -138,37 +190,16 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
     }
 
-    @ExceptionHandler(EventNotFoundException.class)
-    public ResponseEntity<Object> handleUserNotFoundException(EventNotFoundException ex, WebRequest request) {
-        Map<String, Object> body = new LinkedHashMap<>();
-        body.put("timestamp", LocalDateTime.now());
-        body.put("status", HttpStatus.CONFLICT.value());
-        body.put("error", "Not Found");
-        body.put("message", ex.getMessage());
-        body.put("path", request.getDescription(false).replace("uri=", ""));
-        return new ResponseEntity<>(body, HttpStatus.CONFLICT);
-    }
 
-    @ExceptionHandler(EventAlreadyExistsException.class)
-    public ResponseEntity<Object> handleUserNotFoundException(EventAlreadyExistsException ex, WebRequest request) {
+    @ExceptionHandler({InvalidReservationDatesException.class, InvalidEstablishmentCapacityException.class})
+    public ResponseEntity<Object> handleBadRequestValidation(RuntimeException ex, WebRequest request) {
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("timestamp", LocalDateTime.now());
-        body.put("status", HttpStatus.NOT_FOUND.value());
-        body.put("error", "Conflict");
+        body.put("status", HttpStatus.BAD_REQUEST.value());
+        body.put("error", "Bad Request");
         body.put("message", ex.getMessage());
         body.put("path", request.getDescription(false).replace("uri=", ""));
-        return new ResponseEntity<>(body, HttpStatus.NOT_FOUND);
-    }
-
-    @ExceptionHandler(EstablishmentNotFoundException.class)
-    public ResponseEntity<Object> handleEstablishmentNotFoundException(EstablishmentNotFoundException ex, WebRequest request) {
-        Map<String, Object> body = new LinkedHashMap<>();
-        body.put("timestamp", LocalDateTime.now());
-        body.put("status", HttpStatus.NOT_FOUND.value());
-        body.put("error", "Not Found");
-        body.put("message", ex.getMessage());
-        body.put("path", request.getDescription(false).replace("uri=", ""));
-        return new ResponseEntity<>(body, HttpStatus.NOT_FOUND);
+        return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
     }
 
 }
