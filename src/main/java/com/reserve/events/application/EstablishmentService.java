@@ -1,6 +1,7 @@
 package com.reserve.events.application;
 
 import com.reserve.events.controllers.domain.entity.Establishment;
+import com.reserve.events.controllers.domain.model.StatusReserve;
 import com.reserve.events.controllers.domain.repository.EstablishmentRepository;
 import com.reserve.events.controllers.dto.EstablishmentRequest;
 import com.reserve.events.controllers.exception.EstablishmentNotFoundException;
@@ -95,18 +96,19 @@ public class EstablishmentService {
     }
 
     /** Obtiene las fechas ocupadas de un establecimiento por su ID
+     * Filtrar las fechas de reservas que no están canceladas y que son futuras o presentes
      *
      * @param id ID del establecimiento
-     * @return Lista de fechas ocupadas (futuras y presentes) sin duplicados y ordenadas
+     * @return List de fechas ocupadas (futuras y presentes) sin duplicados y ordenadas
      * @throws EstablishmentNotFoundException si el establecimiento no existe o está inactivo
      */
     public List<LocalDate> getOccupiedDatesByEstablishmentId(String id){
-        // TODO: obtener las fechas solo si el establecimiento está activo
-        // un establecimeinto inactivo no puede tener fechas futuras ocupadas
+        // Un establecimeinto inactivo no puede tener fechas futuras ocupadas
         Establishment establishment = establishmentRepository.findByIdAndActiveTrue(id)
                 .orElseThrow(() -> new EstablishmentNotFoundException("Establecimiento no encontrado o inactivo"));
 
         return establishment.getBookings().stream()
+                .filter(reserveSummary -> !reserveSummary.getStatus().equals(StatusReserve.CANCELADA)) // Filtrar reservas no canceladas
                 .flatMap(reserveSummary -> reserveSummary.getDates().stream()) // Unir todas las listas de fechas
                 .filter(date -> !date.isBefore(LocalDate.now())) // Filtrar fechas >= hoy
                 .distinct() // Eliminar fechas duplicadas
