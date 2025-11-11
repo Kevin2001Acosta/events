@@ -4,13 +4,17 @@ import com.reserve.events.controllers.domain.entity.Reserve;
 import com.reserve.events.controllers.domain.entity.User;
 import com.reserve.events.controllers.domain.model.StatusReserve;
 import com.reserve.events.controllers.domain.model.UserType;
+import com.reserve.events.controllers.domain.repository.PaymentRepository;
 import com.reserve.events.controllers.domain.repository.ReserveRepository;
 import com.reserve.events.controllers.domain.repository.UserRepository;
+import com.reserve.events.controllers.dto.ReserveRequest;
 import com.reserve.events.controllers.exception.UserNotFoundException;
+import com.reserve.events.controllers.response.ReserveResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Service
@@ -20,8 +24,8 @@ public class ReserveService {
     private final ReserveRepository reserveRepository;
     private final UserRepository userRepository;
 
-    //@Transactional
-    //public ReserveResponse createReserve(ReserveRequest request){}
+    private final PaymentRepository paymentRepository;
+
 
     public Reserve cancelarReserva(UserDetails userDetails, String id) {
         Reserve reserva = reserveRepository.findById(id)
@@ -47,12 +51,8 @@ public class ReserveService {
         // Actualizar estado a CANCELADA
         reserva.setStatus(StatusReserve.CANCELADA);
         // TODO: Lógica adicional: eliminar pago (esto dependerá de cómo manejes el pago)
-        eliminarPagoSiExiste(id);
+        paymentRepository.deleteByReserveId(reserva.getId());
 
         return reserveRepository.save(reserva);
-    }
-
-    private void eliminarPagoSiExiste(String reservaId) {
-        System.out.println("Pago asociado a la reserva " + reservaId + " ha sido eliminado.");
     }
 }
