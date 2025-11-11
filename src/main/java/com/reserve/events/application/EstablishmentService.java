@@ -25,13 +25,20 @@ public class EstablishmentService {
 
     // Crear un nuevo establecimiento
     public EstablishmentResponse createEstablishment(EstablishmentRequest request) {
+        // Revisar si ya existe un establecimiento activo con el mismo nombre
         if (establishmentRepository.existsByNameAndActiveTrue(request.getName())) {
-            throw new com.reserve.events.controllers.exception.EstablishmentAlreadyExistsException("Ya existe un establecimiento activo con el nombre: " + request.getName());
+            throw new RuntimeException("Ya existe un establecimiento activo con el nombre: " + request.getName());
         }
+
+        // Validar capacidad según tipo
         validateCapacityByType(request);
+
+        // Crear y guardar entidad
         Establishment establishment = mapRequestToEntity(request);
-        establishment.setActive(true);
+        establishment.setActive(true); // siempre activo al crear
         Establishment saved = establishmentRepository.save(establishment);
+
+        // Devolvemos un objeto que la API pueda usar en la respuesta
         return mapToResponse(saved);
     }
 
@@ -47,51 +54,112 @@ public class EstablishmentService {
 
     // Obtener un establecimiento por su id
     public EstablishmentResponse getEstablishmentById(String id) {
+        // Buscamos por id solo si está activo
         Establishment establishment = establishmentRepository.findByIdAndActiveTrue(id)
-                .orElseThrow(() -> new EstablishmentNotFoundException("Establecimiento no encontrado o inactivo"));
+                .orElseThrow(() -> new RuntimeException("Establecimiento no encontrado o inactivo"));
         return mapToResponse(establishment);
     }
 
 
     // Logica put que es para actulizar todos los campos
     public EstablishmentResponse updateEstablishment(String id, EstablishmentRequest request) {
+        // Buscar el establecimiento existente
         Establishment existing = establishmentRepository.findById(id)
-                .orElseThrow(() -> new EstablishmentNotFoundException("Establecimiento no encontrado con id: " + id));
+                .orElseThrow(() -> new RuntimeException("Establecimiento no encontrado con id: " + id));
+
+        // Verificar nombre duplicado
         if (!existing.getName().equals(request.getName()) &&
                 establishmentRepository.existsByNameAndActiveTrue(request.getName())) {
-            throw new com.reserve.events.controllers.exception.EstablishmentAlreadyExistsException("Ya existe otro establecimiento activo con ese nombre");
+            throw new RuntimeException("Ya existe otro establecimiento activo con ese nombre");
         }
+
+        // Validar capacidad según tipo
         validateCapacityByType(request);
-        // ...existing code...
+
+        // Reemplazar todos los campos
+        existing.setName(request.getName());
+        existing.setAddress(request.getAddress());
+        existing.setPhone(request.getPhone());
+        existing.setCity(request.getCity());
+        existing.setCapacity(request.getCapacity());
+        existing.setType(request.getType());
+        existing.setCost(request.getCost());
+        existing.setImageUrl(request.getImageUrl());
+
+        // Guardar cambios
+        Establishment saved = establishmentRepository.save(existing);
+        return mapToResponse(saved);
     }
 
 
     // Actualización parcial (Es decir, de solo los campos que queramos) (PATCH)
     public EstablishmentResponse patchEstablishment(String id, Map<String, Object> updates) {
+        // Buscar el establecimiento existente
         Establishment existing = establishmentRepository.findById(id)
-                .orElseThrow(() -> new EstablishmentNotFoundException("Establecimiento no encontrado con id: " + id));
+                .orElseThrow(() -> new RuntimeException("Establecimiento no encontrado con id: " + id));
+
+        // Actualizar solo los campos presentes en el map
         if (updates.containsKey("name")) {
             String newName = updates.get("name").toString();
+            // Verificar que no exista otro con el mismo nombre activo
             if (!existing.getName().equals(newName) &&
                     establishmentRepository.existsByNameAndActiveTrue(newName)) {
-                throw new com.reserve.events.controllers.exception.EstablishmentAlreadyExistsException("Ya existe otro establecimiento activo con ese nombre");
+                throw new RuntimeException("Ya existe otro establecimiento activo con ese nombre");
             }
             existing.setName(newName);
         }
-        // ...existing code...
+
+        if (updates.containsKey("address")) existing.setAddress(updates.get("address").toString());
+        if (updates.containsKey("phone")) existing.setPhone(updates.get("phone").toString());
+        if (updates.containsKey("city")) existing.setCity(updates.get("city").toString());
+
+        if (updates.containsKey("capacity")) {
+            Integer capacity = Integer.parseInt(updates.get("capacity").toString());
+            existing.setCapacity(capacity);
+        }
+
+        if (updates.containsKey("type")) {
+            EstablishmentType type = EstablishmentType.valueOf(updates.get("type").toString());
+            existing.setType(type);
+        }
+
+        if (updates.containsKey("cost")) {
+            Double cost = Double.parseDouble(updates.get("cost").toString());
+            existing.setCost(cost);
+        }
+
+        if (updates.containsKey("imageUrl")) existing.setImageUrl(updates.get("imageUrl").toString());
+
+        // Validar capacidad según tipo si se cambiaron
+        if (updates.containsKey("capacity") || updates.containsKey("type")) {
+            EstablishmentRequest tempRequest = EstablishmentRequest.builder()
+                    .capacity(existing.getCapacity())
+                    .type(existing.getType())
+                    .build();
+            validateCapacityByType(tempRequest);
+        }
+
+        // Guardar los cambios y devolver la respuesta
+        Establishment saved = establishmentRepository.save(existing);
+        return mapToResponse(saved);
     }
 
 
     // Borrado lógico (DELETE)
     public void deleteEstablishment(String id) {
         Establishment establishment = establishmentRepository.findById(id)
-                .orElseThrow(() -> new EstablishmentNotFoundException("Establecimiento no encontrado"));
+                .orElseThrow(() -> new RuntimeException("Establecimiento no encontrado"));
+
+        // Verificar reservas programadas
         boolean hasScheduledBookings = establishment.getBookings() != null &&
                 establishment.getBookings().stream()
                         .anyMatch(b -> b.getStatus() == StatusReserve.PROGRAMADA);
+
         if (hasScheduledBookings) {
-            throw new com.reserve.events.controllers.exception.EstablishmentDeletionNotAllowedException("No se puede eliminar el establecimiento: tiene reservas programadas");
+            throw new RuntimeException("No se puede eliminar el establecimiento: tiene reservas programadas");
         }
+
+        // Si no hay reservas programadas eliminamos
         establishment.setActive(false); // borrado lógico
         establishmentRepository.save(establishment);
     }
