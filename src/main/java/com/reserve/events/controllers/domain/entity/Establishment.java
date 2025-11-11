@@ -13,6 +13,7 @@ import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 @Data
@@ -63,8 +64,9 @@ public class Establishment {
     @Schema(description = "Indica si el establecimiento está activo (borrado lógico)", example = "true")
     private Boolean active = true;
 
+    @Builder.Default
     @Schema(description = "Lista de reservas asociadas al establecimiento")
-    private List<ReserveSummary> bookings;
+    private List<ReserveSummary> bookings = new ArrayList<>();
 
     @Data
     @Builder
