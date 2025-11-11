@@ -21,7 +21,7 @@ import java.util.List;
 @Validated
 @RestController
 @RequestMapping("/establishments")
-@Tag(name = "establecimientos", description = "Controlador para gestionar establecimientos de eventos")
+@Tag(name = "Establecimientos", description = "Controlador para gestionar establecimientos de eventos")
 @RequiredArgsConstructor
 public class EstablishmentController {
 

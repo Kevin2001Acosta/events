@@ -36,7 +36,7 @@ public class ReserveRequest {
     @NotNull(message = "La(s) fecha(s) de reserva son obligatorias")
     @Schema(
             description = "Fechas de reserva (una o más)",
-            example = "[2025-03-03, 2025-03-04]",
+            example = "[\"2025-03-03\", \"2025-03-04\"]",
             requiredMode = Schema.RequiredMode.REQUIRED)
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private List<@NotNull(message = "Las fecha de reserva no puede estar vacía") LocalDate> dates;

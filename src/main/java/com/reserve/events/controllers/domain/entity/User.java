@@ -14,6 +14,7 @@ import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Data
@@ -51,8 +52,9 @@ public class User {
     @Schema(description = "La contraseña del usuario para autenticación", example = "P@ssw0rd!")
     private String Password;
 
+    @Builder.Default
     @Schema(description = "Lista de las reservas hechas por el usuario")
-    private List<ReserveSummary> eventBookings;
+    private List<ReserveSummary> eventBookings = new ArrayList<>();
 
     @Schema(description = "Lista de los pagos realizados por el usuario")
     private List<PaymentInfo> payments;

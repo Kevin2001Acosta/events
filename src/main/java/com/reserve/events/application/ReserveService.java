@@ -28,11 +28,11 @@ public class ReserveService {
     private final AdittionalRepository adittionalRepository;
 
     @Transactional
-    public ReserveResponse createReserve(ReserveRequest request, String idClient){
+    public ReserveResponse createReserve(ReserveRequest request, String email){
 
         // Validar que el cliente exista
-        User user = userRepository.findById(idClient)
-        .orElseThrow(() -> new UserNotFoundException("No existe un usuario con el id: " + idClient));
+        User user = userRepository.findByEmail(email)
+        .orElseThrow(() -> new UserNotFoundException("No existe un usuario con el correo: " + email));
 
         // Validar que el evento exista
         Event event = eventRepository.findById(request.getEventId())

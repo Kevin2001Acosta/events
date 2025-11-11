@@ -101,6 +101,7 @@ public class SecurityConfig {
                         // (Ej. hacer una reserva, ver mi perfil)
                         // TODO: quitar la ruta de ejemplo cuando pongan una ruta real
                         .requestMatchers("/Ruta-ejemplo").hasRole("CLIENTE")
+                        .requestMatchers(HttpMethod.POST, "/reserve").hasRole("CLIENTE")
 
                         // 4. Endpoints para AMBOS (ADMIN o CLIENTE)
                         .requestMatchers("/reserve/{id}/cancelar").hasAnyRole("ADMIN", "CLIENTE")
