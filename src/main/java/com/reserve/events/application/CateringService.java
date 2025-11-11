@@ -3,11 +3,15 @@ package com.reserve.events.application;
 import com.reserve.events.controllers.domain.entity.Catering;
 import com.reserve.events.controllers.domain.repository.CateringRepository;
 import com.reserve.events.controllers.dto.CateringRequest;
+import com.reserve.events.controllers.exception.ServiceNotFoundException;
 import com.reserve.events.controllers.response.CateringResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -28,10 +32,24 @@ public class CateringService {
 
         // Guardar el servicio
         Catering savedCatering = cateringRepository.save(catering);
-        log.info("Servicio de entretenimiento creado con ID: {}", savedCatering.getId());
+        log.info("Servicio de catering creado con ID: {}", savedCatering.getId());
 
         // Convertir a DTO y retornar
         return mapToCateringResponse(savedCatering);
+    }
+
+    @Transactional(readOnly = true)
+    public List<CateringResponse> getAllCatering() {
+        return cateringRepository.findAll().stream()
+                .map(this::mapToCateringResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public CateringResponse getCateringById(String id) {
+        return cateringRepository.findById(id)
+                .map(this::mapToCateringResponse)
+                .orElseThrow(() -> new ServiceNotFoundException("Servicio no encontrado con ID: " + id));
     }
 
     private CateringResponse mapToCateringResponse(Catering catering){

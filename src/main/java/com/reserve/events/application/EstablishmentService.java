@@ -51,7 +51,6 @@ public class EstablishmentService {
                 .collect(Collectors.toList());
     }
 
-
     // Obtener un establecimiento por su id
     public EstablishmentResponse getEstablishmentById(String id) {
         // Buscamos por id solo si está activo
