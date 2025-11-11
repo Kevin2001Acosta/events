@@ -90,7 +90,11 @@ public class SecurityConfig {
                                 "/entertainment",
                                 "/catering",
                                 "/decoration",
-                                "/additional").hasRole("ADMIN")
+                                "/additional",
+                                "/establishments").hasRole("ADMIN")
+
+                        .requestMatchers(HttpMethod.PUT, "/establishments/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/establishments/**").hasRole("ADMIN")
 
                         .requestMatchers("/add/**", "/delete", "/events", "/events/**").hasRole("ADMIN")
 
