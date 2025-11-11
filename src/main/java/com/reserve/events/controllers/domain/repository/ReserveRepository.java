@@ -4,7 +4,6 @@ import com.reserve.events.controllers.domain.entity.Reserve;
 import com.reserve.events.controllers.domain.model.StatusReserve;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
-import org.springframework.stereotype.Repository;
 import java.util.Optional;
 
 
