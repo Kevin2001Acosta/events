@@ -106,7 +106,7 @@ public class SecurityConfig {
                         .requestMatchers("/reserve/{id}/cancelar").hasAnyRole("ADMIN", "CLIENTE")
 
                         // solo para los endpoint get con esta ruta
-                        .requestMatchers(HttpMethod.GET, "/events").hasAnyRole("ADMIN", "CLIENTE")
+                        .requestMatchers(HttpMethod.GET, "/events", "/establishments/{id}/occupied-dates").hasAnyRole("ADMIN", "CLIENTE")
 
                         // 5. CUALQUIER OTRA PETICIÓN
                         .anyRequest().authenticated() // Requiere token (ADMIN o CLIENTE)

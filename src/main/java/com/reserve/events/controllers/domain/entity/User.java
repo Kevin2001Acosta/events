@@ -12,6 +12,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.List;
@@ -33,6 +34,7 @@ public class User {
 
     @Email(message = "Debe ingresar un correo electrónico válido")
     @NotBlank(message = "El correo electrónico del usuario es obligatorio")
+    @Indexed(unique = true)
     @Schema(description = "Correo electrónico del usuario", example = "monica.cifuentes@correo.com")
     private String email;
 
