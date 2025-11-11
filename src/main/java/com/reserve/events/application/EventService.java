@@ -7,6 +7,7 @@ import com.reserve.events.controllers.domain.repository.ReserveRepository;
 import com.reserve.events.controllers.dto.EventRequest;
 import com.reserve.events.controllers.dto.EventResponse;
 import com.reserve.events.controllers.exception.EventAlreadyExistsException;
+import com.reserve.events.controllers.exception.EventDeletionNotAllowedException;
 import com.reserve.events.controllers.exception.EventNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -100,7 +101,7 @@ public class EventService {
 
         long activeReservations = reserveRepository.countByEventIdAndStatus(id, StatusReserve.PROGRAMADA);
         if (activeReservations > 0) {
-            throw new com.reserve.events.controllers.exception.EventDeletionNotAllowedException("No se puede eliminar el evento porque tiene reservas activas asociadas.");
+            throw new EventDeletionNotAllowedException("No se puede eliminar el evento porque tiene reservas activas asociadas.");
         }
 
         eventRepository.deleteById(id);

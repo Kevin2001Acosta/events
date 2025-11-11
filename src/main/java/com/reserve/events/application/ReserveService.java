@@ -287,7 +287,7 @@ public class ReserveService {
     @Transactional
     public Reserve cancelarReserva(UserDetails userDetails, String id) {
         Reserve reserva = reserveRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Reserva no encontrada con ID: " + id));
+                .orElseThrow(() -> new ReserveNotFoundException("Reserva no encontrada con ID: " + id));
 
         // traer al usuario logueado
         User user = userRepository.findByEmail(userDetails.getUsername())
@@ -300,10 +300,10 @@ public class ReserveService {
 
         // Verificar que no esté ya cancelada o completada
         if (reserva.getStatus() == StatusReserve.CANCELADA) {
-            throw new RuntimeException("La reserva ya está cancelada.");
+            throw new ReservationAlreadyCancelledException("La reserva ya está cancelada.");
         }
         if (reserva.getStatus() == StatusReserve.COMPLETADA) {
-            throw new RuntimeException("No se puede cancelar una reserva completada.");
+            throw new ReservationCompletedCannotCancelException("No se puede cancelar una reserva completada.");
         }
 
         // Actualizar estado a CANCELADA

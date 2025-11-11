@@ -6,8 +6,7 @@ import com.reserve.events.controllers.domain.model.StatusReserve;
 import com.reserve.events.controllers.domain.model.EstablishmentType;
 import com.reserve.events.controllers.domain.repository.EstablishmentRepository;
 import com.reserve.events.controllers.dto.EstablishmentRequest;
-import com.reserve.events.controllers.exception.EstablishmentNotFoundException;
-import com.reserve.events.controllers.exception.InvalidReservationDatesException;
+import com.reserve.events.controllers.exception.*;
 import com.reserve.events.controllers.response.EstablishmentResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -27,7 +26,7 @@ public class EstablishmentService {
     public EstablishmentResponse createEstablishment(EstablishmentRequest request) {
         // Revisar si ya existe un establecimiento activo con el mismo nombre
         if (establishmentRepository.existsByNameAndActiveTrue(request.getName())) {
-            throw new RuntimeException("Ya existe un establecimiento activo con el nombre: " + request.getName());
+            throw new EstablishmentAlreadyExistsException("Ya existe un establecimiento activo con el nombre: " + request.getName());
         }
 
         // Validar capacidad según tipo
@@ -56,7 +55,7 @@ public class EstablishmentService {
     public EstablishmentResponse getEstablishmentById(String id) {
         // Buscamos por id solo si está activo
         Establishment establishment = establishmentRepository.findByIdAndActiveTrue(id)
-                .orElseThrow(() -> new RuntimeException("Establecimiento no encontrado o inactivo"));
+                .orElseThrow(() -> new EstablishmentNotFoundException("Establecimiento no encontrado o inactivo"));
         return mapToResponse(establishment);
     }
 
@@ -65,12 +64,12 @@ public class EstablishmentService {
     public EstablishmentResponse updateEstablishment(String id, EstablishmentRequest request) {
         // Buscar el establecimiento existente
         Establishment existing = establishmentRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Establecimiento no encontrado con id: " + id));
+                .orElseThrow(() -> new EstablishmentNotFoundException("Establecimiento no encontrado con id: " + id));
 
         // Verificar nombre duplicado
         if (!existing.getName().equals(request.getName()) &&
                 establishmentRepository.existsByNameAndActiveTrue(request.getName())) {
-            throw new RuntimeException("Ya existe otro establecimiento activo con ese nombre");
+            throw new EstablishmentAlreadyExistsException("Ya existe otro establecimiento activo con ese nombre");
         }
 
         // Validar capacidad según tipo
@@ -96,7 +95,7 @@ public class EstablishmentService {
     public EstablishmentResponse patchEstablishment(String id, Map<String, Object> updates) {
         // Buscar el establecimiento existente
         Establishment existing = establishmentRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Establecimiento no encontrado con id: " + id));
+                .orElseThrow(() -> new EstablishmentNotFoundException("Establecimiento no encontrado con id: " + id));
 
         // Actualizar solo los campos presentes en el map
         if (updates.containsKey("name")) {
@@ -104,7 +103,7 @@ public class EstablishmentService {
             // Verificar que no exista otro con el mismo nombre activo
             if (!existing.getName().equals(newName) &&
                     establishmentRepository.existsByNameAndActiveTrue(newName)) {
-                throw new RuntimeException("Ya existe otro establecimiento activo con ese nombre");
+                throw new EstablishmentAlreadyExistsException("Ya existe otro establecimiento activo con ese nombre");
             }
             existing.setName(newName);
         }
@@ -148,7 +147,7 @@ public class EstablishmentService {
     // Borrado lógico (DELETE)
     public void deleteEstablishment(String id) {
         Establishment establishment = establishmentRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Establecimiento no encontrado"));
+                .orElseThrow(() -> new EstablishmentNotFoundException("Establecimiento no encontrado"));
 
         // Verificar reservas programadas
         boolean hasScheduledBookings = establishment.getBookings() != null &&
@@ -156,7 +155,7 @@ public class EstablishmentService {
                         .anyMatch(b -> b.getStatus() == StatusReserve.PROGRAMADA);
 
         if (hasScheduledBookings) {
-            throw new RuntimeException("No se puede eliminar el establecimiento: tiene reservas programadas");
+            throw new EstablishmentDeletionNotAllowedException("No se puede eliminar el establecimiento: tiene reservas programadas");
         }
 
         // Si no hay reservas programadas eliminamos
@@ -213,17 +212,17 @@ public class EstablishmentService {
         switch (request.getType()) {
             case SMALL -> {
                 if (request.getCapacity() > 50) {
-                    throw new RuntimeException("Un establecimiento SMALL no puede tener capacidad mayor a 50");
+                    throw new InvalidEstablishmentCapacityException("Un establecimiento SMALL no puede tener capacidad mayor a 50");
                 }
             }
             case MEDIUM -> {
                 if (request.getCapacity() > 200) {
-                    throw new RuntimeException("Un establecimiento MEDIUM no puede tener capacidad mayor a 200");
+                    throw new InvalidEstablishmentCapacityException("Un establecimiento MEDIUM no puede tener capacidad mayor a 200");
                 }
             }
             case LARGE -> {
                 if (request.getCapacity() <= 200) {
-                    throw new RuntimeException("Un establecimiento LARGE debe tener capacidad mayor a 200");
+                    throw new InvalidEstablishmentCapacityException("Un establecimiento LARGE debe tener capacidad mayor a 200");
                 }
             }
         }
@@ -265,4 +264,3 @@ public class EstablishmentService {
 
     }
 }
-
