@@ -32,6 +32,7 @@ public class ReserveService {
     // TO DO: Verificar que los invitados no excedan el cupo max del establecimiento
     // TO DO: Agregar los errores que no están al global exception
     // TO DO: Hacer el get de los servicios y la reserva
+    // TO DO: Revisar que las fechas dadas en la lista de Dates sean del presente o del futuro, que no se puedan fechas pasadas
 
     @Transactional
     public ReserveResponse createReserve(ReserveRequest request, String email){

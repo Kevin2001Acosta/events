@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Validated
 @RestController
 @RequestMapping("/User")
-@Tag(name = "Usuarios", description = "Controlador para gestionar usuarios")
+@Tag(name = "usuarios", description = "Controlador para gestionar usuarios")
 @RequiredArgsConstructor
 public class UserController {
 

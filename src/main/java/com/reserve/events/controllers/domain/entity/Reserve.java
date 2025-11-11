@@ -17,7 +17,7 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Document(collection = "Reserve")
+@Document(collection = "Reserva")
 @Schema(description = "Entidad que representa una reserva de un cliente.")
 public class Reserve {
 
