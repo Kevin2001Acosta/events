@@ -83,9 +83,13 @@ public class ReserveRequest {
 
         @Builder.Default
         @Schema(description = "Lista de servicios adicionales seleccionados")
-        private List<AdditionalServiceRequest> additionalServices = new ArrayList<>();
+        private List<AdditionalRequest> additionalServices = new ArrayList<>();
     }
 
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class EntertainmentRequest {
 
         @Schema(description = "ID del servicio")
@@ -100,6 +104,10 @@ public class ReserveRequest {
         private int hours;
     }
 
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class DecorationRequest {
 
         @Schema(description = "ID de la decoración")
@@ -107,6 +115,10 @@ public class ReserveRequest {
         private String id;
     }
 
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class CateringRequest {
 
         @Schema(description = "ID del Caterín")
@@ -128,10 +140,18 @@ public class ReserveRequest {
         private int numberDish;
     }
 
-    public static class AdditionalServiceRequest {
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class AdditionalRequest {
 
         @Schema(description = "Horas contratadas del servicio", example = "3")
         @NotBlank(message = "El id del servicio adicional es obligatorio")
         private String id;
+
+        @NotNull(message = "La cantidad comprada del servicio adicional es obligatoria si se incluye un servicio adicional")
+        @Schema(description = "Cantidad comprada del servicio adicional", example = "300.0")
+        private Integer quantity;
     }
 }

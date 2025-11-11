@@ -1,8 +1,9 @@
 package com.reserve.events.controllers;
 
+import com.reserve.events.controllers.domain.entity.Event;
 import com.reserve.events.controllers.dto.EventRequest;
 import com.reserve.events.controllers.dto.EventResponse;
-import com.reserve.events.aplication.EventService;
+import com.reserve.events.application.EventService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -14,6 +15,8 @@ import org.springframework.web.bind.annotation.*;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.springframework.http.ResponseEntity;
+
+import java.util.List;
 
 @Validated
 @RestController
@@ -48,5 +51,19 @@ public class EventController {
     public ResponseEntity<EventResponse> updateEvent(@PathVariable String id, @Valid @RequestBody EventRequest request) {
         EventResponse response = eventService.updateEvent(id, request);
         return ResponseEntity.ok(response);
+    }
+
+    @DeleteMapping("/{id}")
+    @Operation(summary = "Eliminar un evento (Solo administrador)")
+    public ResponseEntity<String> eliminarEvento(@PathVariable String id) {
+        String eventoId = eventService.eliminarEvento(id);
+        return ResponseEntity.ok("Evento con ID " + eventoId + " eliminado exitosamente.");
+    }
+
+    @GetMapping
+    @Operation(summary = "Listar todos los eventos")
+    public ResponseEntity<List<Event>> listarEventos() {
+        List<Event> eventos = eventService.listarTodosLosEventos();
+        return ResponseEntity.ok(eventos);
     }
 }
