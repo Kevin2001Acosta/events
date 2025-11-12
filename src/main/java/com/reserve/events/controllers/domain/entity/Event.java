@@ -7,6 +7,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 @Data
@@ -20,6 +21,7 @@ public class Event {
     @Id
     private String id;
 
+    @Indexed(unique = true)
     @NotBlank(message = "El tipo de evento es obligatorio")
     @Schema(description = "Tipo de evento", example = "Cumpleaños")
     private String type;

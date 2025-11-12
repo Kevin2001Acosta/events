@@ -3,6 +3,7 @@ package com.reserve.events.controllers.domain.model;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -32,7 +33,7 @@ public class EstablishmentSummary {
     @Schema(description = "Teléfono de contacto del establecimiento", example = "3001234567")
     private String phone;
 
-    @NotBlank(message = "El costo del establecimiento es obligatorio")
+    @NotNull (message = "El costo total del establecimiento es obligatorio")
     @Schema(description = "Costo total del establecimiento", example = "1500.0")
     private Double totalCost;
 }

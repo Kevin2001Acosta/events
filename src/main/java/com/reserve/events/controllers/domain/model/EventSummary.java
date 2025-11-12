@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.data.mongodb.core.index.Indexed;
 
 
 @Data
@@ -19,6 +20,7 @@ public class EventSummary {
     @Schema(description = "Id del evento", example = "evt_1")
     private String id;
 
+    @Indexed(unique = true)
     @NotBlank(message = "El tipo de evento es obligatorio")
     @Schema(description = "Tipo de evento", example = "Cumpleaños")
     private String type;

@@ -1,19 +1,26 @@
-package com.reserve.events.aplication;
+package com.reserve.events.application;
 
 import com.reserve.events.controllers.domain.entity.Event;
+import com.reserve.events.controllers.domain.model.StatusReserve;
 import com.reserve.events.controllers.domain.repository.EventRepository;
+import com.reserve.events.controllers.domain.repository.ReserveRepository;
 import com.reserve.events.controllers.dto.EventRequest;
 import com.reserve.events.controllers.dto.EventResponse;
 import com.reserve.events.controllers.exception.EventAlreadyExistsException;
 import com.reserve.events.controllers.exception.EventNotFoundException;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class EventService {
 
     private final EventRepository eventRepository;
+    private final ReserveRepository reserveRepository;
 
     // Imágenes predefinidas por tipo
     private final Map<String, String> predefinedEventImages = Map.of(
@@ -31,9 +38,6 @@ public class EventService {
 
     private final String DEFAULT_IMAGE = "/default.jpg";
 
-    public EventService(EventRepository eventRepository) {
-        this.eventRepository = eventRepository;
-    }
 
     public EventResponse createEvent(EventRequest request) {
 
@@ -84,6 +88,34 @@ public class EventService {
     }
 
     private EventResponse mapToEventResponse(Event event) {
+        return EventResponse.builder()
+                .id(event.getId())
+                .type(event.getType())
+                .imageUrl(event.getImageUrl())
+                .build();
+    }
+    public String deleteEvent(String id) {
+        Event event = eventRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Evento no encontrado con ID: " + id));
+
+        // Verificar que no tenga reservas activas (PROGRAMADA)
+        long activeReservations = reserveRepository.countByEventIdAndStatus(id, StatusReserve.PROGRAMADA);
+        if (activeReservations > 0) {
+            throw new RuntimeException("No se puede eliminar el evento porque tiene reservas activas asociadas.");
+        }
+
+        eventRepository.deleteById(id);
+        return id; // Retornar ID del evento eliminado
+    }
+
+    public List<EventResponse> listAllEvents() {
+        return eventRepository.findAll().stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
+    }
+
+    // --- MÉT/ODO AUXILIAR ---
+    private EventResponse mapToResponse(Event event) {
         return EventResponse.builder()
                 .id(event.getId())
                 .type(event.getType())
