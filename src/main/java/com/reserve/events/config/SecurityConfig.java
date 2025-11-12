@@ -9,15 +9,22 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 // clase contra la que registramos filtros
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.Arrays;
 
 @Configuration
 @EnableWebSecurity // Habilita la configuración de seguridad web de Spring
@@ -45,8 +52,7 @@ public class SecurityConfig {
      */
     @Bean
     public AuthenticationProvider authenticationProvider() {
-        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
-        authProvider.setUserDetailsService(customUserDetailsService);
+        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider(customUserDetailsService);
         authProvider.setPasswordEncoder(passwordEncoder());
         return authProvider;
     }
@@ -62,16 +68,36 @@ public class SecurityConfig {
     }
 
     // --- BEAN 4: La Cadena de Filtros de Seguridad (El Núcleo) ---
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(Arrays.asList(
+                "http://localhost:5173",
+                "http://10.147.17.249:5173",
+                "http://127.0.0.1:5173"
+        ));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(Arrays.asList("*"));
+        configuration.setAllowCredentials(true);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
+    }
+
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                /**
+                /*
                  * 1. Deshabilitar CSRF (Cross-Site Request Forgery).
                  * Es común deshabilitarlo para APIs REST stateless (que no usan sesiones).
                  */
-                .csrf(csrf -> csrf.disable())
+                .csrf(AbstractHttpConfigurer::disable)
+                .cors(Customizer.withDefaults())
 
-                /**
+                /*
                  * 2. Configurar las reglas de autorización.
                  * Aquí defines qué rutas son públicas y cuáles son privadas.
                  */
@@ -84,30 +110,38 @@ public class SecurityConfig {
                                 "/v3/api-docs/**"
                         ).permitAll()
 
-                        // 2. Endpoints solo para ADMIN
+                        // 2. Endpoints solo para POST ADMIN
                         // (Ej. borrar usuarios, crear eventos)
                         .requestMatchers(HttpMethod.POST,
                                 "/entertainment",
                                 "/catering",
                                 "/decoration",
-                                "/additional").hasRole("ADMIN")
+                                "/additional",
+                                "/establishments",
+                                "/events").hasRole("ADMIN")
 
-                        .requestMatchers("/add/**", "/delete", "/events", "/events/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/events/{id}", "/establishments/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/events/{id}", "/establishments/**").hasRole("ADMIN")
 
-                                // 3. Endpoints solo para CLIENTE
+
+                        // 3. Endpoints solo para CLIENTE
                         // (Ej. hacer una reserva, ver mi perfil)
-                        .requestMatchers("/reser/crear", "/usu/mi-perfil").hasRole("CLIENTE")
+                        // TODO: quitar la ruta de ejemplo cuando pongan una ruta real
+                        .requestMatchers("/Ruta-ejemplo").hasRole("CLIENTE")
+                        .requestMatchers(HttpMethod.POST, "/reserve").hasRole("CLIENTE")
 
                         // 4. Endpoints para AMBOS (ADMIN o CLIENTE)
-                        // (Ej. ver eventos)
-                        .requestMatchers(HttpMethod.GET, "/even/ver/**").hasAnyRole("ADMIN", "CLIENTE")
+                        .requestMatchers("/reserve/{id}/cancelar").hasAnyRole("ADMIN", "CLIENTE")
+
+                        // solo para los endpoint get con esta ruta
+                        .requestMatchers(HttpMethod.GET, "/events", "/establishments/{id}/occupied-dates").hasAnyRole("ADMIN", "CLIENTE")
 
                         // 5. CUALQUIER OTRA PETICIÓN
                         .anyRequest().authenticated() // Requiere token (ADMIN o CLIENTE)
                 )
                 // --- FIN DE LA SECCIÓN DE AUTORIZACIÓN ---
 
-                /**
+                /*
                  * 3. Configurar la gestión de sesión.
                  * Para una API REST, se usa STATELESS (sin estado).
                  * Spring no creará ni usará sesiones HTTP.
@@ -116,13 +150,13 @@ public class SecurityConfig {
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
 
-                /**
+                /*
                  * 4. Le decimos a Spring Security que use el proveedor de
                  * autenticación que configuramos en el BEAN 2.
                  */
                 .authenticationProvider(authenticationProvider())
 
-        // (Aquí es donde se añadiría un filtro JWT si lo estuvieras usando)
+                // (Aquí es donde se añadiría un filtro JWT si lo estuvieras usando)
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
