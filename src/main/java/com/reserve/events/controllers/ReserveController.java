@@ -38,6 +38,27 @@ public class ReserveController {
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
+    @GetMapping
+    @Operation(summary = "Listar reservas del usuario autenticado")
+    public ResponseEntity<java.util.List<ReserveResponse>> listUserReserves(@AuthenticationPrincipal UserDetails userDetails) {
+        java.util.List<ReserveResponse> reserves = reserveService.listReservesByUserEmail(userDetails.getUsername());
+        return ResponseEntity.ok(reserves);
+    }
+
+    @GetMapping("/{id}")
+    @Operation(summary = "Obtener detalle de una reserva por id")
+    public ResponseEntity<ReserveResponse> getReserve(@AuthenticationPrincipal UserDetails userDetails, @PathVariable String id) {
+        ReserveResponse response = reserveService.getReserveById(userDetails, id);
+        return ResponseEntity.ok(response);
+    }
+
+    @PutMapping("/{id}")
+    @Operation(summary = "Actualizar una reserva (solo si está PENDIENTE/PROGRAMADA)")
+    public ResponseEntity<ReserveResponse> updateReserve(@AuthenticationPrincipal UserDetails userDetails, @PathVariable String id, @Valid @RequestBody ReserveRequest reserveRequest) {
+        ReserveResponse response = reserveService.updateReserve(userDetails, id, reserveRequest);
+        return ResponseEntity.ok(response);
+    }
+
     @PatchMapping("/{id}/cancelar")
     @Operation(summary = "Cancelar una reserva")
     public ResponseEntity<Reserve> cancelReservation(@AuthenticationPrincipal UserDetails userDetails, @PathVariable String id) {
