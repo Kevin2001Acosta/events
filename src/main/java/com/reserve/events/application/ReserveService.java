@@ -34,7 +34,7 @@ public class ReserveService {
     // TO DO: Verificar que los invitados no excedan el cupo max del establecimiento
     // TO DO: Agregar los errores que no están al global exception
     // TO DO: Hacer el get de los servicios y la reserva
-    // TO DO: Revisar que las fechas dadas en la lista de Dates sean del presente o del futuro, que no se puedan fechas pasadas
+    // DONE: Revisar que las fechas dadas en la lista de Dates sean del presente o del futuro, que no se puedan fechas pasadas
 
     @Transactional
     public ReserveResponse createReserve(ReserveRequest request, String email){
@@ -50,6 +50,14 @@ public class ReserveService {
         // Validar que el establecimiento exista
         Establishment establishment = establishmentRepository.findById(request.getEstablishmentId())
                 .orElseThrow(() -> new EstablishmentNotFoundException("No existe un establecimiento con el id: " + request.getEstablishmentId()));
+
+        // Validar que todas las fechas sean futuras
+        java.time.LocalDate today = java.time.LocalDate.now();
+        for (java.time.LocalDate date : request.getDates()) {
+            if (date.isBefore(today)) {
+                throw new BadRequestException("No se pueden reservar fechas pasadas. La fecha " + date + " es anterior a hoy.");
+            }
+        }
 
         // Validar que las fechas en las que se quiere reservar si estan disponibles
         boolean datesAvailable = establishmentService.areDatesAvailableForEstablishment(request.getDates(), request.getEstablishmentId());
@@ -214,6 +222,14 @@ public class ReserveService {
 
         if (reserva.getStatus() != StatusReserve.PROGRAMADA) {
             throw new BadRequestException("Solo se pueden editar reservas en estado PROGRAMADA.");
+        }
+
+        // Validar que todas las fechas sean futuras
+        java.time.LocalDate today = java.time.LocalDate.now();
+        for (java.time.LocalDate date : request.getDates()) {
+            if (date.isBefore(today)) {
+                throw new BadRequestException("No se pueden reservar fechas pasadas. La fecha " + date + " es anterior a hoy.");
+            }
         }
 
         // Validar establecimiento si cambia
@@ -473,7 +489,7 @@ public class ReserveService {
                 });
     }
 
-    private ReserveResponse mapToReserveResponse(Reserve reserve) {
+    public ReserveResponse mapToReserveResponse(Reserve reserve) {
         return ReserveResponse.builder()
                 .id(reserve.getId())
                 .status(reserve.getStatus())
