@@ -5,7 +5,7 @@ import com.reserve.events.controllers.domain.model.StatusReserve;
 import com.reserve.events.controllers.domain.repository.EventRepository;
 import com.reserve.events.controllers.domain.repository.ReserveRepository;
 import com.reserve.events.controllers.dto.EventRequest;
-import com.reserve.events.controllers.dto.EventResponse;
+import com.reserve.events.controllers.response.EventResponse;
 import com.reserve.events.controllers.exception.EventAlreadyExistsException;
 import com.reserve.events.controllers.exception.EventDeletionNotAllowedException;
 import com.reserve.events.controllers.exception.EventNotFoundException;
@@ -95,6 +95,9 @@ public class EventService {
                 .id(event.getId())
                 .type(event.getType())
                 .imageUrl(event.getImageUrl())
+                .scheduledBookings(event.getScheduledBookings())
+                .completedBookings(event.getCompletedBookings())
+                .cancelledBookings(event.getCancelledBookings())
                 .build();
     }
 
