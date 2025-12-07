@@ -7,9 +7,11 @@ import com.reserve.events.controllers.domain.repository.ReserveRepository;
 import com.reserve.events.controllers.dto.EventRequest;
 import com.reserve.events.controllers.dto.EventResponse;
 import com.reserve.events.controllers.exception.EventAlreadyExistsException;
+import com.reserve.events.controllers.exception.EventDeletionNotAllowedException;
 import com.reserve.events.controllers.exception.EventNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
@@ -17,6 +19,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class EventService {
 
     private final EventRepository eventRepository;
@@ -94,32 +97,23 @@ public class EventService {
                 .imageUrl(event.getImageUrl())
                 .build();
     }
+
     public String deleteEvent(String id) {
         Event event = eventRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Evento no encontrado con ID: " + id));
+                .orElseThrow(() -> new EventNotFoundException("Evento no encontrado con ID: " + id));
 
-        // Verificar que no tenga reservas activas (PROGRAMADA)
         long activeReservations = reserveRepository.countByEventIdAndStatus(id, StatusReserve.PROGRAMADA);
         if (activeReservations > 0) {
-            throw new RuntimeException("No se puede eliminar el evento porque tiene reservas activas asociadas.");
+            throw new EventDeletionNotAllowedException("No se puede eliminar el evento porque tiene reservas activas asociadas.");
         }
 
         eventRepository.deleteById(id);
-        return id; // Retornar ID del evento eliminado
+        return id;
     }
 
     public List<EventResponse> listAllEvents() {
         return eventRepository.findAll().stream()
-                .map(this::mapToResponse)
+                .map(this::mapToEventResponse)
                 .collect(Collectors.toList());
-    }
-
-    // --- MÉT/ODO AUXILIAR ---
-    private EventResponse mapToResponse(Event event) {
-        return EventResponse.builder()
-                .id(event.getId())
-                .type(event.getType())
-                .imageUrl(event.getImageUrl())
-                .build();
     }
 }
