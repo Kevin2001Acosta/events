@@ -2,7 +2,6 @@ package com.reserve.events.application;
 
 import java.util.Map;
 import com.reserve.events.controllers.domain.entity.Establishment;
-import com.reserve.events.controllers.domain.model.StatusReserve;
 import com.reserve.events.controllers.domain.model.EstablishmentType;
 import com.reserve.events.controllers.domain.repository.EstablishmentRepository;
 import com.reserve.events.controllers.dto.EstablishmentRequest;
@@ -151,10 +150,9 @@ public class EstablishmentService {
         Establishment establishment = establishmentRepository.findById(id)
                 .orElseThrow(() -> new EstablishmentNotFoundException("Establecimiento no encontrado"));
 
-        // Verificar reservas programadas
-        boolean hasScheduledBookings = establishment.getBookings() != null &&
-                establishment.getBookings().stream()
-                        .anyMatch(b -> b.getStatus() == StatusReserve.PROGRAMADA);
+        // Verificar si hay reservas programadas
+        boolean hasScheduledBookings = establishment.getScheduledBookings() != null &&
+                !establishment.getScheduledBookings().isEmpty();
 
         if (hasScheduledBookings) {
             throw new EstablishmentDeletionNotAllowedException("No se puede eliminar el establecimiento: tiene reservas programadas");
@@ -166,23 +164,23 @@ public class EstablishmentService {
     }
 
     /** Obtiene las fechas ocupadas de un establecimiento por su ID
-     * Filtrar las fechas de reservas que no están canceladas y que son futuras o presentes
+     * Solo considera las reservas programadas (scheduledBookings) que son futuras o presentes
      *
      * @param id ID del establecimiento
      * @return List de fechas ocupadas (futuras y presentes) sin duplicados y ordenadas
      * @throws EstablishmentNotFoundException si el establecimiento no existe o está inactivo
      */
     public List<LocalDate> getOccupiedDatesByEstablishmentId(String id){
-        // Un establecimeinto inactivo no puede tener fechas futuras ocupadas
+        // Un establecimiento inactivo no puede tener fechas futuras ocupadas
         Establishment establishment = establishmentRepository.findByIdAndActiveTrue(id)
                 .orElseThrow(() -> new EstablishmentNotFoundException("Establecimiento no encontrado o inactivo"));
 
-        return establishment.getBookings().stream()
-                .filter(reserveSummary -> !reserveSummary.getStatus().equals(StatusReserve.CANCELADA)) // Filtrar reservas no canceladas
-                .flatMap(reserveSummary -> reserveSummary.getDates().stream()) // Unir todas las listas de fechas
-                .filter(date -> !date.isBefore(LocalDate.now())) // Filtrar fechas >= hoy
-                .distinct() // Eliminar fechas duplicadas
-                .sorted() // Ordenar las fechas
+        // Solo scheduledBookings tienen fechas ocupadas
+        return establishment.getScheduledBookings().stream()
+                .flatMap(reserveSummary -> reserveSummary.getDates().stream())
+                .filter(date -> !date.isBefore(LocalDate.now()))
+                .distinct()
+                .sorted()
                 .toList();
     }
 

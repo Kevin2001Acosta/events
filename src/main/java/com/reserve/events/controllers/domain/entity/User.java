@@ -55,8 +55,16 @@ public class User {
     private String Password;
 
     @Builder.Default
-    @Schema(description = "Lista de las reservas hechas por el usuario")
-    private List<ReserveSummary> eventBookings = new ArrayList<>();
+    @Schema(description = "Lista de las reservas programadas del usuario")
+    private List<ReserveSummary> scheduledBookings = new ArrayList<>();
+
+    @Builder.Default
+    @Schema(description = "Lista de las reservas completadas del usuario")
+    private List<ReserveSummary> completedBookings = new ArrayList<>();
+
+    @Builder.Default
+    @Schema(description = "Lista de las reservas canceladas del usuario")
+    private List<ReserveSummary> cancelledBookings = new ArrayList<>();
 
     @Schema(description = "Lista de los pagos realizados por el usuario")
     private List<PaymentInfo> payments;

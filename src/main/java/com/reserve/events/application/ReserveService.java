@@ -299,12 +299,15 @@ public class ReserveService {
         reserva.setTotalCost(costReserveTotal);
 
         Reserve saved = reserveRepository.save(reserva);
-        // actualizar reservas en usuario y establecimiento
-        // actualizar reserva en lista del usuario
-        user.getEventBookings().stream()
+        // actualizar reserva en scheduledBookings del usuario
+        user.getScheduledBookings().stream()
                 .filter(b -> b.getId().equals(saved.getId()))
                 .findFirst()
-                .ifPresent(b -> b.setStatus(saved.getStatus()));
+                .ifPresent(b -> {
+                    b.setStatus(saved.getStatus());
+                    b.setDates(saved.getDates());
+                    b.setServices(saved.getServices());
+                });
         userRepository.save(user);
 
         return mapToReserveResponse(saved);
@@ -316,7 +319,8 @@ public class ReserveService {
 
         ReserveSummary summaryReserve = createReserveSummary(reserve);
 
-        user.getEventBookings().add(summaryReserve);
+        // Nueva reserva siempre va a scheduledBookings
+        user.getScheduledBookings().add(summaryReserve);
         userRepository.save(user);
         log.info("Usuario '{}' actualizado con la reserva '{}'", user.getFullName(), summaryReserve.getId());
     }
@@ -327,7 +331,8 @@ public class ReserveService {
 
         Establishment.ReserveSummary summaryReserve = createReserveSummaryForEstablishment(reserve, user);
 
-        establishment.getBookings().add(summaryReserve);
+        // Nueva reserva siempre va a scheduledBookings
+        establishment.getScheduledBookings().add(summaryReserve);
         establishmentRepository.save(establishment);
         log.info("Establecimiento '{}' actualizado con la reserva '{}'", establishment.getName(), summaryReserve.getId());
     }
@@ -468,11 +473,15 @@ public class ReserveService {
     }
 
     private void updateReserveToCanceledInUser(String reservaId, User user) {
-        // Actualizar el estado de la reserva en las reservas del usuario
-        user.getEventBookings().stream()
-                .filter(booking -> booking.getId().equals(reservaId)) // Buscar la reserva por ID
+        // Buscar la reserva en scheduledBookings, actualizar status y mover a cancelledBookings
+        user.getScheduledBookings().stream()
+                .filter(booking -> booking.getId().equals(reservaId))
                 .findFirst()
-                .ifPresent(booking -> booking.setStatus(StatusReserve.CANCELADA)); // Actualizar el estado
+                .ifPresent(booking -> {
+                    booking.setStatus(StatusReserve.CANCELADA);
+                    user.getScheduledBookings().remove(booking);
+                    user.getCancelledBookings().add(booking);
+                });
 
         // Guardar los cambios en el usuario
         userRepository.save(user);
@@ -480,11 +489,17 @@ public class ReserveService {
 
     private void updateReserveToCanceledInEstablishment(String establishmentId, String reservaId){
         establishmentRepository.findById(establishmentId)
-                .ifPresent(establishment ->{
-                    establishment.getBookings().stream().filter(booking -> booking.getId().equals(reservaId))
+                .ifPresent(establishment -> {
+                    // Buscar la reserva en scheduledBookings, actualizar status y mover a cancelledBookings
+                    establishment.getScheduledBookings().stream()
+                            .filter(booking -> booking.getId().equals(reservaId))
                             .findFirst()
-                            .ifPresent(booking -> booking.setStatus(StatusReserve.CANCELADA));
-                    // Guarda los cambios en el establecimiento
+                            .ifPresent(booking -> {
+                                booking.setStatus(StatusReserve.CANCELADA);
+                                establishment.getScheduledBookings().remove(booking);
+                                establishment.getCancelledBookings().add(booking);
+                            });
+                    // Guardar los cambios en el establecimiento
                     establishmentRepository.save(establishment);
                 });
     }
