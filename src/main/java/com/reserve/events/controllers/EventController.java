@@ -72,4 +72,15 @@ public class EventController {
         List<EventResponse> events = eventService.listAllEvents();
         return ResponseEntity.ok(events);
     }
+
+    @GetMapping("/{id}")
+    @Operation(summary = "Obtener un evento por su ID")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Evento encontrado"),
+            @ApiResponse(responseCode = "404", description = "Evento no encontrado")
+    })
+    public ResponseEntity<EventResponse> getEventById(@PathVariable String id) {
+        EventResponse response = eventService.getEventById(id);
+        return ResponseEntity.ok(response);
+    }
 }
