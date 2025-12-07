@@ -36,7 +36,8 @@ public class OpenApiConfig {
                         .addList("BearerAuth")
                 )
                 .servers(List.of(
-                        new Server().url("http://localhost:8080").description("Servidor Local")
+                        new Server().url("http://localhost:8081").description("Servidor Local (Puerto 8081)"),
+                        new Server().url("http://localhost:8080").description("Servidor Local (Puerto 8080)")
                 ));
     }
 }
