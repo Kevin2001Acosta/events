@@ -24,87 +24,16 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
-    @Override
-    protected ResponseEntity<Object> handleMethodArgumentNotValid(
-            MethodArgumentNotValidException ex, HttpHeaders headers,
-            HttpStatusCode status, WebRequest request) {
+    // ==================== MÉTODOS AUXILIARES ====================
 
+    private ResponseEntity<Object> buildBadRequestResponse(WebRequest request, String message) {
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("timestamp", LocalDateTime.now());
-        body.put("status", status.value());
+        body.put("status", HttpStatus.BAD_REQUEST.value());
         body.put("error", "Bad Request");
-
-        // Obtener todos los errores de validación
-        Map<String, String> errors = ex.getBindingResult()
-                .getFieldErrors()
-                .stream()
-                .collect(Collectors.toMap(
-                        FieldError::getField,
-                        fieldError -> fieldError.getDefaultMessage() != null ?
-                                fieldError.getDefaultMessage() : "Error de validación"
-                ));
-
-        body.put("errors", errors);
+        body.put("message", message);
         body.put("path", request.getDescription(false).replace("uri=", ""));
-
         return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
-    }
-
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<Object> handleAllExceptions(Exception ex, WebRequest request) {
-        Map<String, Object> body = new LinkedHashMap<>();
-        body.put("timestamp", LocalDateTime.now());
-        body.put("status", HttpStatus.INTERNAL_SERVER_ERROR.value());
-        body.put("error", "Internal Server Error");
-        body.put("message", "Ocurrió un error inesperado. Por favor, intente nuevamente más tarde.");
-        body.put("path", request.getDescription(false).replace("uri=", ""));
-
-        // Log the exception for debugging purposes
-        log.error("Unhandled exception at {}", body.get("path"), ex);
-
-        return new ResponseEntity<>(body, HttpStatus.INTERNAL_SERVER_ERROR);
-    }
-
-    // 409 CONFLICT: agrupar todas las 'AlreadyExists' y conflictos de disponibilidad
-    @ExceptionHandler({
-            ServiceAlreadyExistsException.class,
-            AvailableEstablishmentNotFoundException.class,
-            EventAlreadyExistsException.class,
-            UserAlreadyExistsException.class,
-            EstablishmentAlreadyExistsException.class,
-            EstablishmentDeletionNotAllowedException.class,
-            EventDeletionNotAllowedException.class,
-            ReservationAlreadyCancelledException.class,
-            ReservationCompletedCannotCancelException.class
-    })
-    public ResponseEntity<Object> handleConflict(RuntimeException ex, WebRequest request) {
-        return buildConflictResponse(request, ex.getMessage());
-    }
-
-    @ExceptionHandler({
-            ForbiddenActionException.class
-    })
-    public ResponseEntity<Object> handleForbidden(RuntimeException ex, WebRequest request) {
-        Map<String, Object> body = new LinkedHashMap<>();
-        body.put("timestamp", LocalDateTime.now());
-        body.put("status", HttpStatus.FORBIDDEN.value());
-        body.put("error", "Forbidden");
-        body.put("message", ex.getMessage());
-        body.put("path", request.getDescription(false).replace("uri=", ""));
-        return new ResponseEntity<>(body, HttpStatus.FORBIDDEN);
-    }
-
-    // 404 NOT FOUND: agrupar todas las 'NotFound'
-    @ExceptionHandler({
-            EventNotFoundException.class,
-            EstablishmentNotFoundException.class,
-            PaymentNotFoundException.class,
-            ReserveNotFoundException.class,
-            ServiceNotFoundException.class,
-            UserNotFoundException.class
-    })
-    public ResponseEntity<Object> handleNotFound(RuntimeException ex, WebRequest request) {
-        return buildNotFoundResponse(request, ex.getMessage());
     }
 
     private ResponseEntity<Object> buildNotFoundResponse(WebRequest request, String message) {
@@ -127,9 +56,54 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return new ResponseEntity<>(body, HttpStatus.CONFLICT);
     }
 
+    private ResponseEntity<Object> buildForbiddenResponse(WebRequest request, String message) {
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("timestamp", LocalDateTime.now());
+        body.put("status", HttpStatus.FORBIDDEN.value());
+        body.put("error", "Forbidden");
+        body.put("message", message);
+        body.put("path", request.getDescription(false).replace("uri=", ""));
+        return new ResponseEntity<>(body, HttpStatus.FORBIDDEN);
+    }
+
+    // ==================== 400 BAD REQUEST ====================
+    // Agrupar todas las excepciones de validación y formato inválido
+
+    @ExceptionHandler({
+            InvalidReservationDatesException.class,
+            InvalidEstablishmentCapacityException.class
+    })
+    public ResponseEntity<Object> handleBadRequestValidation(RuntimeException ex, WebRequest request) {
+        return buildBadRequestResponse(request, ex.getMessage());
+    }
+
+    @Override
+    protected ResponseEntity<Object> handleMethodArgumentNotValid(
+            MethodArgumentNotValidException ex, HttpHeaders headers,
+            HttpStatusCode status, WebRequest request) {
+
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("timestamp", LocalDateTime.now());
+        body.put("status", status.value());
+        body.put("error", "Bad Request");
+
+        Map<String, String> errors = ex.getBindingResult()
+                .getFieldErrors()
+                .stream()
+                .collect(Collectors.toMap(
+                        FieldError::getField,
+                        fieldError -> fieldError.getDefaultMessage() != null ?
+                                fieldError.getDefaultMessage() : "Error de validación"
+                ));
+
+        body.put("errors", errors);
+        body.put("path", request.getDescription(false).replace("uri=", ""));
+
+        return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
+    }
+
     @ExceptionHandler(InvalidFormatException.class)
     public ResponseEntity<Object> handleInvalidFormatException(InvalidFormatException ex, WebRequest request) {
-
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("timestamp", LocalDateTime.now());
         body.put("status", HttpStatus.BAD_REQUEST.value());
@@ -139,14 +113,10 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         String invalidValue = "";
         String allowedValues = "";
 
-        // Detectar si el targetType es un enum
         if (ex.getTargetType() != null && ex.getTargetType().isEnum()) {
-
-            // Nombre del campo
             if (!ex.getPath().isEmpty()) {
                 fieldName = ex.getPath().get(0).getFieldName();
             }
-
             invalidValue = ex.getValue() != null ? ex.getValue().toString() : "null";
 
             allowedValues = Arrays.stream(ex.getTargetType().getEnumConstants())
@@ -190,16 +160,64 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
     }
 
+    // ==================== 403 FORBIDDEN ====================
+    // Agrupar todas las excepciones de acceso denegado
 
-    @ExceptionHandler({InvalidReservationDatesException.class, InvalidEstablishmentCapacityException.class})
-    public ResponseEntity<Object> handleBadRequestValidation(RuntimeException ex, WebRequest request) {
+    @ExceptionHandler({
+            ForbiddenActionException.class
+    })
+    public ResponseEntity<Object> handleForbidden(RuntimeException ex, WebRequest request) {
+        return buildForbiddenResponse(request, ex.getMessage());
+    }
+
+    // ==================== 404 NOT FOUND ====================
+    // Agrupar todas las excepciones de recursos no encontrados
+
+    @ExceptionHandler({
+            EventNotFoundException.class,
+            EstablishmentNotFoundException.class,
+            PaymentNotFoundException.class,
+            ReserveNotFoundException.class,
+            ServiceNotFoundException.class,
+            UserNotFoundException.class
+    })
+    public ResponseEntity<Object> handleNotFound(RuntimeException ex, WebRequest request) {
+        return buildNotFoundResponse(request, ex.getMessage());
+    }
+
+    // ==================== 409 CONFLICT ====================
+    // Agrupar todas las excepciones de conflictos (duplicados, estados inválidos)
+
+    @ExceptionHandler({
+            ServiceAlreadyExistsException.class,
+            AvailableEstablishmentNotFoundException.class,
+            EventAlreadyExistsException.class,
+            UserAlreadyExistsException.class,
+            EstablishmentAlreadyExistsException.class,
+            EstablishmentDeletionNotAllowedException.class,
+            EventDeletionNotAllowedException.class,
+            ReservationAlreadyCancelledException.class,
+            ReservationCompletedCannotCancelException.class
+    })
+    public ResponseEntity<Object> handleConflict(RuntimeException ex, WebRequest request) {
+        return buildConflictResponse(request, ex.getMessage());
+    }
+
+    // ==================== 500 INTERNAL SERVER ERROR ====================
+    // Capturar cualquier excepción no manejada
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<Object> handleAllExceptions(Exception ex, WebRequest request) {
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("timestamp", LocalDateTime.now());
-        body.put("status", HttpStatus.BAD_REQUEST.value());
-        body.put("error", "Bad Request");
-        body.put("message", ex.getMessage());
+        body.put("status", HttpStatus.INTERNAL_SERVER_ERROR.value());
+        body.put("error", "Internal Server Error");
+        body.put("message", "Ocurrió un error inesperado. Por favor, intente nuevamente más tarde.");
         body.put("path", request.getDescription(false).replace("uri=", ""));
-        return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
+
+        log.error("Unhandled exception at {}", body.get("path"), ex);
+
+        return new ResponseEntity<>(body, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
 }
