@@ -10,6 +10,7 @@ import com.reserve.events.controllers.exception.*;
 import com.reserve.events.controllers.response.EstablishmentResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -17,6 +18,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class EstablishmentService {
 
     private final EstablishmentRepository establishmentRepository;
@@ -67,7 +69,7 @@ public class EstablishmentService {
                 .orElseThrow(() -> new EstablishmentNotFoundException("Establecimiento no encontrado con id: " + id));
 
         // Verificar nombre duplicado
-        if (!existing.getName().equals(request.getName()) &&
+            if (!existing.getName().equals(request.getName()) &&
                 establishmentRepository.existsByNameAndActiveTrue(request.getName())) {
             throw new EstablishmentAlreadyExistsException("Ya existe otro establecimiento activo con ese nombre");
         }

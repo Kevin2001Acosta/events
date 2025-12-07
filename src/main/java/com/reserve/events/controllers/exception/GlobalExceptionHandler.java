@@ -71,7 +71,8 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler({
             InvalidReservationDatesException.class,
-            InvalidEstablishmentCapacityException.class
+            InvalidEstablishmentCapacityException.class,
+            BadRequestException.class
     })
     public ResponseEntity<Object> handleBadRequestValidation(RuntimeException ex, WebRequest request) {
         return buildBadRequestResponse(request, ex.getMessage());
@@ -144,12 +145,10 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
         Throwable cause = ex.getCause();
 
-        // Si la causa es InvalidFormatException
         if (cause instanceof InvalidFormatException) {
             return handleInvalidFormatException((InvalidFormatException) cause, request);
         }
 
-        // Si la causa es otra cosa, devolver un error más genérico
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("timestamp", LocalDateTime.now());
         body.put("status", HttpStatus.BAD_REQUEST.value());
@@ -164,7 +163,8 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     // Agrupar todas las excepciones de acceso denegado
 
     @ExceptionHandler({
-            ForbiddenActionException.class
+            ForbiddenActionException.class,
+            ForbiddenException.class
     })
     public ResponseEntity<Object> handleForbidden(RuntimeException ex, WebRequest request) {
         return buildForbiddenResponse(request, ex.getMessage());
@@ -197,7 +197,8 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
             EstablishmentDeletionNotAllowedException.class,
             EventDeletionNotAllowedException.class,
             ReservationAlreadyCancelledException.class,
-            ReservationCompletedCannotCancelException.class
+            ReservationCompletedCannotCancelException.class,
+            ResourceConflictException.class
     })
     public ResponseEntity<Object> handleConflict(RuntimeException ex, WebRequest request) {
         return buildConflictResponse(request, ex.getMessage());

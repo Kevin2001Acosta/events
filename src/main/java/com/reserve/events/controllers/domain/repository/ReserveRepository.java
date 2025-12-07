@@ -26,4 +26,18 @@ public interface ReserveRepository extends MongoRepository<Reserve, String> {
      */
     @Query("{'event.id': ?0, 'status': ?1}")
     long countByEventIdAndStatus(String eventId, StatusReserve status);
+
+    /**
+     * Encuentra todas las reservas de un cliente por su id
+     * @param clientId id del cliente
+     * @return lista de reservas
+     */
+    @Query("{'client.id': ?0}")
+    java.util.List<Reserve> findByClientId(String clientId);
+
+    /**
+     * Encuentra una reserva por su id y el id del cliente (para validaciones de dueño)
+     */
+    @Query("{'id': ?0, 'client.id': ?1}")
+    java.util.Optional<Reserve> findByIdAndClientId(String id, String clientId);
 }
