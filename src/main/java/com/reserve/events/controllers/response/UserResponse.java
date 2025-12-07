@@ -31,7 +31,9 @@ public class UserResponse {
     private String city;
     private UserType type;
 
-    private List<ReserveSummaryResponse> eventBookings;
+    private List<ReserveSummaryResponse> scheduledBookings;
+    private List<ReserveSummaryResponse> completedBookings;
+    private List<ReserveSummaryResponse> cancelledBookings;
 
     private List<User.PaymentInfo> payments;
 

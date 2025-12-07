@@ -76,9 +76,13 @@ public class SecurityConfig {
         configuration.setAllowedOrigins(Arrays.asList(
                 "http://localhost:5173",
                 "http://10.147.17.249:5173",
-                "http://127.0.0.1:5173"
+                "http://127.0.0.1:5173",
+                "http://localhost:8081",
+                "http://127.0.0.1:8081",
+                "http://localhost:8080",
+                "http://127.0.0.1:8080"
         ));
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setAllowCredentials(true);
 
@@ -102,7 +106,10 @@ public class SecurityConfig {
                  * Aquí defines qué rutas son públicas y cuáles son privadas.
                  */
                 .authorizeHttpRequests(authz -> authz
-                        // Tus endpoints públicos (ej. login, registro, swagger)
+
+                        // ==================== RUTAS PÚBLICAS ====================
+                        // No requieren autenticación (sin token JWT)
+                        // Agregar aquí: login, registro, documentación, recursos públicos
                         .requestMatchers(
                                 "/User/login",
                                 "/User/register",
@@ -110,34 +117,110 @@ public class SecurityConfig {
                                 "/v3/api-docs/**"
                         ).permitAll()
 
-                        // 2. Endpoints solo para POST ADMIN
-                        // (Ej. borrar usuarios, crear eventos)
+                        .requestMatchers(HttpMethod.GET,
+                                "/entertainment",
+                                "/catering",
+                                "/decoration",
+                                "/additional"
+                        ).permitAll()
+
+                        // ==================== SOLO ADMIN ====================
+
+                        // GET solo ADMIN: Agregar rutas que solo el admin puede consultar
+                        .requestMatchers(HttpMethod.GET,
+                                "/admin-example-get",
+                                "/User",
+                                "/User/type/{type}",
+                                "/User/{id}"
+                        ).hasRole("ADMIN")
+
+                        // POST solo ADMIN: Agregar rutas donde solo el admin puede crear recursos
                         .requestMatchers(HttpMethod.POST,
                                 "/entertainment",
                                 "/catering",
                                 "/decoration",
                                 "/additional",
                                 "/establishments",
-                                "/events").hasRole("ADMIN")
+                                "/events"
+                        ).hasRole("ADMIN")
 
-                        .requestMatchers(HttpMethod.PUT, "/events/{id}", "/establishments/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/events/{id}", "/establishments/**").hasRole("ADMIN")
+                        // PUT solo ADMIN: Agregar rutas donde solo el admin puede actualizar
+                        .requestMatchers(HttpMethod.PUT,
+                                "/events/{id}",
+                                "/establishments/**"
+                        ).hasRole("ADMIN")
 
+                        // PATCH solo ADMIN: Agregar rutas donde solo el admin puede actualizar parcialmente
+                        .requestMatchers(HttpMethod.PATCH,
+                                "/admin-example-patch"
+                        ).hasRole("ADMIN")
 
-                        // 3. Endpoints solo para CLIENTE
-                        // (Ej. hacer una reserva, ver mi perfil)
-                        // TODO: quitar la ruta de ejemplo cuando pongan una ruta real
-                        .requestMatchers("/Ruta-ejemplo").hasRole("CLIENTE")
-                        .requestMatchers(HttpMethod.POST, "/reserve").hasRole("CLIENTE")
+                        // DELETE solo ADMIN: Agregar rutas donde solo el admin puede eliminar
+                        .requestMatchers(HttpMethod.DELETE,
+                                "/events/{id}",
+                                "/establishments/**"
+                        ).hasRole("ADMIN")
 
-                        // 4. Endpoints para AMBOS (ADMIN o CLIENTE)
-                        .requestMatchers("/reserve/{id}/cancelar").hasAnyRole("ADMIN", "CLIENTE")
+                        // ==================== SOLO CLIENTE ====================
 
-                        // solo para los endpoint get con esta ruta
-                        .requestMatchers(HttpMethod.GET, "/events", "/establishments/{id}/occupied-dates").hasAnyRole("ADMIN", "CLIENTE")
+                        // GET solo CLIENTE: Agregar rutas que solo el cliente puede consultar
+                        .requestMatchers(HttpMethod.GET,
+                                "/cliente-example-get"
+                        ).hasRole("CLIENTE")
 
-                        // 5. CUALQUIER OTRA PETICIÓN
-                        .anyRequest().authenticated() // Requiere token (ADMIN o CLIENTE)
+                        // POST solo CLIENTE: Agregar rutas donde solo el cliente puede crear
+                        .requestMatchers(HttpMethod.POST,
+                                "/reserve"
+                        ).hasRole("CLIENTE")
+
+                        // PUT solo CLIENTE: Agregar rutas donde solo el cliente puede actualizar
+                        .requestMatchers(HttpMethod.PUT,
+                                "/reserve/{id}"
+                        ).hasRole("CLIENTE")
+
+                        // PATCH solo CLIENTE: Agregar rutas donde solo el cliente puede actualizar parcialmente
+                        .requestMatchers(HttpMethod.PATCH,
+                                "/cliente-example-patch"
+                        ).hasRole("CLIENTE")
+
+                        // DELETE solo CLIENTE: Agregar rutas donde solo el cliente puede eliminar
+                        .requestMatchers(HttpMethod.DELETE,
+                                "/cliente-example-delete"
+                        ).hasRole("CLIENTE")
+
+                        // ==================== ADMIN Y CLIENTE (AMBOS) ====================
+
+                        // GET para ambos: Agregar rutas que ambos roles pueden consultar
+                        .requestMatchers(HttpMethod.GET,
+                                "/events",
+                                "/establishments/{id}/occupied-dates",
+                                "/reserve",
+                                "/reserve/{id}"
+                        ).hasAnyRole("ADMIN", "CLIENTE")
+
+                        // POST para ambos: Agregar rutas donde ambos pueden crear
+                        .requestMatchers(HttpMethod.POST,
+                                "/ambos-example-post"
+                        ).hasAnyRole("ADMIN", "CLIENTE")
+
+                        // PUT para ambos: Agregar rutas donde ambos pueden actualizar
+                        .requestMatchers(HttpMethod.PUT,
+                                "/reserve/{id}/cancelar"
+                        ).hasAnyRole("ADMIN", "CLIENTE")
+
+                        // PATCH para ambos: Agregar rutas donde ambos pueden actualizar parcialmente
+                        .requestMatchers(HttpMethod.PATCH,
+                                "/ambos-example-patch"
+                        ).hasAnyRole("ADMIN", "CLIENTE")
+
+                        // DELETE para ambos: Agregar rutas donde ambos pueden eliminar
+                        .requestMatchers(HttpMethod.DELETE,
+                                "/ambos-example-delete"
+                        ).hasAnyRole("ADMIN", "CLIENTE")
+
+                        // ==================== CUALQUIER OTRA PETICIÓN ====================
+                        // Requiere estar autenticado (con token JWT válido, sin importar el rol)
+                        .anyRequest().authenticated()
                 )
                 // --- FIN DE LA SECCIÓN DE AUTORIZACIÓN ---
 

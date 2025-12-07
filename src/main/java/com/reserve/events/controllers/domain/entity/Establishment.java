@@ -73,8 +73,16 @@ public class Establishment {
     private Boolean active = true;
 
     @Builder.Default
-    @Schema(description = "Lista de reservas asociadas al establecimiento")
-    private List<ReserveSummary> bookings = new ArrayList<>();
+    @Schema(description = "Lista de reservas programadas del establecimiento")
+    private List<ReserveSummary> scheduledBookings = new ArrayList<>();
+
+    @Builder.Default
+    @Schema(description = "Lista de reservas completadas del establecimiento")
+    private List<ReserveSummary> completedBookings = new ArrayList<>();
+
+    @Builder.Default
+    @Schema(description = "Lista de reservas canceladas del establecimiento")
+    private List<ReserveSummary> cancelledBookings = new ArrayList<>();
 
     @Data
     @Builder

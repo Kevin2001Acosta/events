@@ -1,7 +1,7 @@
 package com.reserve.events.controllers;
 
 import com.reserve.events.controllers.dto.EventRequest;
-import com.reserve.events.controllers.dto.EventResponse;
+import com.reserve.events.controllers.response.EventResponse;
 import com.reserve.events.application.EventService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
