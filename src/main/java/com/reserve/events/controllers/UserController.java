@@ -5,6 +5,7 @@ import com.reserve.events.controllers.dto.LoginRequest;
 import com.reserve.events.controllers.dto.UserRequest;
 import com.reserve.events.controllers.response.UserCreatedResponse;
 import com.reserve.events.controllers.response.UserLoginResponse;
+import com.reserve.events.controllers.response.UserResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -14,10 +15,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @Validated
 @RestController
@@ -52,6 +52,33 @@ public class UserController {
 
         UserLoginResponse response = userService.loginUser(userLoginRequest);
         return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+    @GetMapping
+    @Operation(summary = "Obtener lista de todos los usuarios")
+    @ApiResponse(responseCode = "200", description = "Lista de usuarios obtenida exitosamente")
+    public ResponseEntity<List<UserResponse>> getAllUsers() {
+        return ResponseEntity.ok(userService.getAllUsers());
+    }
+
+    @GetMapping("/{id}")
+    @Operation(summary = "Obtener un Usuario según su ID")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Usuario encontrado"),
+            @ApiResponse(responseCode = "404", description = "Usuario no encontrado")
+    })
+    public ResponseEntity<UserResponse> getUserById(@PathVariable String id) {
+        return ResponseEntity.ok(userService.getUserById(id));
+    }
+
+    @GetMapping("/type/{type}")
+    @Operation(summary = "Obtener lista de todos los usuarios por tipo")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Usuarios encontrados"),
+            @ApiResponse(responseCode = "404", description = "Usuarios no encontrados")
+    })
+    public ResponseEntity<List<UserResponse>> getUserByType(@PathVariable String type) {
+        return ResponseEntity.ok(userService.getAllUsersByType(type));
     }
 
 }

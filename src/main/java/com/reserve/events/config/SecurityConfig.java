@@ -121,7 +121,10 @@ public class SecurityConfig {
                                 "/entertainment",
                                 "/catering",
                                 "/decoration",
-                                "/additional"
+                                "/additional",
+                                "/User",
+                                "/User/type/{type}",
+                                "/User/{id}"
                         ).permitAll()
 
                         // ==================== SOLO ADMIN ====================
