@@ -10,6 +10,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -39,6 +42,13 @@ public class EntertainmentService {
 
         // Convertir a DTO y retornar
         return mapToEntertainmentResponse(savedEntertainment);
+    }
+
+    @Transactional(readOnly = true)
+    public List<EntertainmentResponse> getAllEntertainment() {
+        return entertainmentRepository.findAll().stream()
+                .map(this::mapToEntertainmentResponse)
+                .collect(Collectors.toList());
     }
 
     private EntertainmentResponse mapToEntertainmentResponse(Entertainment entertainment){
