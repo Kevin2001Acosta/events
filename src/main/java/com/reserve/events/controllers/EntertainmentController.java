@@ -12,10 +12,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @Validated
 @RestController
@@ -37,4 +36,12 @@ public class EntertainmentController {
         EntertainmentResponse response = entertainmentService.createEntertainment(entertainmentRequest);
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
+
+    @GetMapping
+    @Operation(summary = "Obtener todos los servicios de entretenimiento")
+    @ApiResponse(responseCode = "200", description = "Lista de entretenimientos obtenida exitosamente")
+    public ResponseEntity<List<EntertainmentResponse>> getAllEntertainment() {
+        return ResponseEntity.ok(entertainmentService.getAllEntertainment());
+    }
+
 }

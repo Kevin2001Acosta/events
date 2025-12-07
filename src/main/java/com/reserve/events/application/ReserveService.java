@@ -31,7 +31,7 @@ public class ReserveService {
     private final CateringRepository cateringRepository;
     private final AdittionalRepository adittionalRepository;
 
-    // TO DO: Verificar que los invitados no excedan el cupo max del establecimiento
+    // DONE: Verificar que los invitados no excedan el cupo max del establecimiento
     // TO DO: Agregar los errores que no están al global exception
     // TO DO: Hacer el get de los servicios y la reserva
     // DONE: Revisar que las fechas dadas en la lista de Dates sean del presente o del futuro, que no se puedan fechas pasadas
@@ -50,6 +50,12 @@ public class ReserveService {
         // Validar que el establecimiento exista
         Establishment establishment = establishmentRepository.findById(request.getEstablishmentId())
                 .orElseThrow(() -> new EstablishmentNotFoundException("No existe un establecimiento con el id: " + request.getEstablishmentId()));
+
+        // Validar que el cupo no exceda el máximo del establecimiento
+        boolean guestCapacity = establishment.getCapacity() < request.getGuestNumber();
+        if (guestCapacity){
+            throw new BadRequestException("El número de invitados excede la capacidad del local. Su capacidad es de " + establishment.getCapacity());
+        }
 
         // Validar que todas las fechas sean futuras
         java.time.LocalDate today = java.time.LocalDate.now();
