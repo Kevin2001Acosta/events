@@ -4,6 +4,7 @@ import com.reserve.events.controllers.domain.entity.Entertainment;
 import com.reserve.events.controllers.domain.repository.EntertainmentRepository;
 import com.reserve.events.controllers.dto.EntertainmentRequest;
 import com.reserve.events.controllers.exception.ServiceAlreadyExistsException;
+import com.reserve.events.controllers.exception.ServiceNotFoundException;
 import com.reserve.events.controllers.response.EntertainmentResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -49,6 +50,13 @@ public class EntertainmentService {
         return entertainmentRepository.findAll().stream()
                 .map(this::mapToEntertainmentResponse)
                 .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public EntertainmentResponse getEntertainmentById(String id) {
+        return entertainmentRepository.findById(id)
+                .map(this::mapToEntertainmentResponse)
+                .orElseThrow(() -> new ServiceNotFoundException("Servicio no encontrado con ID: " + id));
     }
 
     private EntertainmentResponse mapToEntertainmentResponse(Entertainment entertainment){

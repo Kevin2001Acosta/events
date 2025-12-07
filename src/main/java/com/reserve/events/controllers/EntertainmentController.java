@@ -44,4 +44,13 @@ public class EntertainmentController {
         return ResponseEntity.ok(entertainmentService.getAllEntertainment());
     }
 
+    @GetMapping("/{id}")
+    @Operation(summary = "Obtener un servicio de entretenimiento por su ID")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Servicio encontrado"),
+            @ApiResponse(responseCode = "404", description = "Servicio no encontrado")
+    })
+    public ResponseEntity<EntertainmentResponse> getEntertainmentById(@PathVariable String id) {
+        return ResponseEntity.ok(entertainmentService.getEntertainmentById(id));
+    }
 }

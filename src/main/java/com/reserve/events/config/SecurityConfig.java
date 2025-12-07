@@ -117,6 +117,13 @@ public class SecurityConfig {
                                 "/v3/api-docs/**"
                         ).permitAll()
 
+                        .requestMatchers(HttpMethod.GET,
+                                "/entertainment",
+                                "/catering",
+                                "/decoration",
+                                "/additional"
+                        ).permitAll()
+
                         // ==================== SOLO ADMIN ====================
 
                         // GET solo ADMIN: Agregar rutas que solo el admin puede consultar
