@@ -12,6 +12,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -32,7 +34,7 @@ public class ReserveService {
     // TO DO: Verificar que los invitados no excedan el cupo max del establecimiento
     // TO DO: Agregar los errores que no están al global exception
     // TO DO: Hacer el get de los servicios y la reserva
-    // TO DO: Revisar que las fechas dadas en la lista de Dates sean del presente o del futuro, que no se puedan fechas pasadas
+    // DONE: Revisar que las fechas dadas en la lista de Dates sean del presente o del futuro, que no se puedan fechas pasadas
 
     @Transactional
     public ReserveResponse createReserve(ReserveRequest request, String email){
@@ -48,6 +50,14 @@ public class ReserveService {
         // Validar que el establecimiento exista
         Establishment establishment = establishmentRepository.findById(request.getEstablishmentId())
                 .orElseThrow(() -> new EstablishmentNotFoundException("No existe un establecimiento con el id: " + request.getEstablishmentId()));
+
+        // Validar que todas las fechas sean futuras
+        java.time.LocalDate today = java.time.LocalDate.now();
+        for (java.time.LocalDate date : request.getDates()) {
+            if (date.isBefore(today)) {
+                throw new BadRequestException("No se pueden reservar fechas pasadas. La fecha " + date + " es anterior a hoy.");
+            }
+        }
 
         // Validar que las fechas en las que se quiere reservar si estan disponibles
         boolean datesAvailable = establishmentService.areDatesAvailableForEstablishment(request.getDates(), request.getEstablishmentId());
@@ -163,6 +173,141 @@ public class ReserveService {
 
         //Covertir a response y retornar
         return mapToReserveResponse(savedReserve);
+    }
+
+    /**
+     * Lista las reservas del usuario autenticado identificado por su email
+     */
+    public List<ReserveResponse> listReservesByUserEmail(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UserNotFoundException("No existe un usuario con el correo: " + email));
+
+        java.util.List<Reserve> reserves = reserveRepository.findByClientId(user.getId());
+
+        return reserves.stream().map(this::mapToReserveResponse).collect(Collectors.toList());
+    }
+
+    /**
+     * Obtiene el detalle de una reserva por id para el usuario autenticado (o ADMIN)
+     */
+    public ReserveResponse getReserveById(UserDetails userDetails, String id) {
+        Reserve reserve = reserveRepository.findById(id)
+            .orElseThrow(() -> new ReserveNotFoundException("Reserva no encontrada con ID: " + id));
+
+        // Si el usuario no es ADMIN, validar que sea el dueño
+        User currentUser = userRepository.findByEmail(userDetails.getUsername())
+                .orElseThrow(() -> new UserNotFoundException("Usuario no encontrado con email: " + userDetails.getUsername()));
+
+        if(!currentUser.getType().equals(UserType.ADMIN) && !reserve.getClient().getId().equals(currentUser.getId())){
+            throw new ForbiddenException("No tienes permisos para ver esta reserva");
+        }
+
+        return mapToReserveResponse(reserve);
+    }
+
+    /**
+     * Actualiza una reserva (solo si está en estado PROGRAMADA)
+     */
+    @Transactional
+    public ReserveResponse updateReserve(UserDetails userDetails, String id, ReserveRequest request){
+        Reserve reserva = reserveRepository.findById(id)
+            .orElseThrow(() -> new ReserveNotFoundException("Reserva no encontrada con ID: " + id));
+
+        User user = userRepository.findByEmail(userDetails.getUsername())
+                .orElseThrow(() -> new UserNotFoundException("Usuario no encontrado con email: " + userDetails.getUsername()));
+
+        if(!reserva.getClient().getId().equals(user.getId())){
+            throw new ForbiddenException("Como CLIENTE no puedes modificar una reserva que no es tuya.");
+        }
+
+        if (reserva.getStatus() != StatusReserve.PROGRAMADA) {
+            throw new BadRequestException("Solo se pueden editar reservas en estado PROGRAMADA.");
+        }
+
+        // Validar que todas las fechas sean futuras
+        java.time.LocalDate today = java.time.LocalDate.now();
+        for (java.time.LocalDate date : request.getDates()) {
+            if (date.isBefore(today)) {
+                throw new BadRequestException("No se pueden reservar fechas pasadas. La fecha " + date + " es anterior a hoy.");
+            }
+        }
+
+        // Validar establecimiento si cambia
+        Establishment establishment = establishmentRepository.findById(request.getEstablishmentId())
+                .orElseThrow(() -> new EstablishmentNotFoundException("No existe un establecimiento con el id: " + request.getEstablishmentId()));
+
+        // Validar disponibilidad de fechas
+        boolean datesAvailable = establishmentService.areDatesAvailableForEstablishment(request.getDates(), request.getEstablishmentId());
+        if (!datesAvailable) {
+            throw new AvailableEstablishmentNotFoundException("El establecimiento escogido para la reserva no tiene disponibilidad en las fechas: " + request.getDates());
+        }
+
+        // Actualizar campos básicos
+        reserva.setGuestNumber(request.getGuestNumber());
+        reserva.setDates(request.getDates());
+        reserva.setComments(request.getComments());
+        reserva.setEstablishment(createEstablishmentSummary(establishment, request.getDates().size()));
+
+        // Recalcular costo total de la reserva (similar a createReserve)
+        double costReserveTotal = establishment.getCost() * request.getDates().size();
+        CoveredServicesReserve covered = new CoveredServicesReserve();
+
+        if(!noServices(request.getServices())){
+            if (!request.getServices().getEntertainment().isEmpty()) {
+                for (ReserveRequest.EntertainmentRequest entReq: request.getServices().getEntertainment()) {
+                    Entertainment ent = entertainmentRepository.findById(entReq.getId())
+                            .orElseThrow(()-> new ServiceNotFoundException("No existe el servicio de entretenimiento con id:" + entReq.getId()));
+                    EntertainmentSummary summaryEntertainment = createEntertainmentSummary(ent, entReq.getHours());
+                    covered.getEntertainment().add(summaryEntertainment);
+                    costReserveTotal += summaryEntertainment.getTotalCost();
+                }
+            }
+
+            if (!(request.getServices().getDecoration() == null)){
+                String idDecoracion = request.getServices().getDecoration().getId();
+                Decoration decoration = decorationRepository.findById(idDecoracion)
+                        .orElseThrow(() -> new ServiceNotFoundException("No existe el servicio de decoración con id: " + idDecoracion));
+
+                DecorationSummary decorationSummary = createDecorationSummary(decoration);
+                covered.setDecoration(decorationSummary);
+
+                costReserveTotal += decorationSummary.getCost();
+            }
+
+            if (!request.getServices().getCatering().isEmpty()) {
+                for (ReserveRequest.CateringRequest catReq: request.getServices().getCatering()) {
+                    Catering cat = cateringRepository.findById(catReq.getId())
+                            .orElseThrow(()-> new ServiceNotFoundException("No existe el servicio de catering con id:" + catReq.getId()));
+                    CateringSummary summaryCatering = createCateringSummary(cat, catReq.getNumberDish());
+                    covered.getCatering().add(summaryCatering);
+                    costReserveTotal += summaryCatering.getTotalCost();
+                }
+            }
+
+            if (!(request.getServices().getAdditionalServices().isEmpty())){
+                for (ReserveRequest.AdditionalRequest addReq: request.getServices().getAdditionalServices()) {
+                    Adittional add = adittionalRepository.findById(addReq.getId())
+                            .orElseThrow(()-> new ServiceNotFoundException("No existe el servicio adicional con id:" + addReq.getId()));
+                    AdittionalSummary summaryAdittional = createAdittionalSummary(add, addReq.getQuantity());
+                    covered.getAdditionalServices().add(summaryAdittional);
+                    costReserveTotal += summaryAdittional.getTotalCost();
+                }
+            }
+        }
+
+        reserva.setServices(covered);
+        reserva.setTotalCost(costReserveTotal);
+
+        Reserve saved = reserveRepository.save(reserva);
+        // actualizar reservas en usuario y establecimiento
+        // actualizar reserva en lista del usuario
+        user.getEventBookings().stream()
+                .filter(b -> b.getId().equals(saved.getId()))
+                .findFirst()
+                .ifPresent(b -> b.setStatus(saved.getStatus()));
+        userRepository.save(user);
+
+        return mapToReserveResponse(saved);
     }
 
     private void updatedUserWithNewReserve(Reserve reserve, String userId) {
@@ -287,7 +432,7 @@ public class ReserveService {
     @Transactional
     public Reserve cancelarReserva(UserDetails userDetails, String id) {
         Reserve reserva = reserveRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Reserva no encontrada con ID: " + id));
+                .orElseThrow(() -> new ReserveNotFoundException("Reserva no encontrada con ID: " + id));
 
         // traer al usuario logueado
         User user = userRepository.findByEmail(userDetails.getUsername())
@@ -295,15 +440,15 @@ public class ReserveService {
 
         // verifica que si el usuario es cliente, sea el dueño de la reserva a cancelar
         if(!user.getType().equals(UserType.CLIENTE) || !reserva.getClient().getId().equals(user.getId())) {
-            throw new RuntimeException("Como CLIENTE no puedes cancelar una reserva que no es tuya.");
+            throw new ForbiddenException("Como CLIENTE no puedes cancelar una reserva que no es tuya.");
         }
 
         // Verificar que no esté ya cancelada o completada
         if (reserva.getStatus() == StatusReserve.CANCELADA) {
-            throw new RuntimeException("La reserva ya está cancelada.");
+            throw new ReservationAlreadyCancelledException("La reserva ya está cancelada.");
         }
         if (reserva.getStatus() == StatusReserve.COMPLETADA) {
-            throw new RuntimeException("No se puede cancelar una reserva completada.");
+            throw new ReservationCompletedCannotCancelException("No se puede cancelar una reserva completada.");
         }
 
         // Actualizar estado a CANCELADA
@@ -344,7 +489,7 @@ public class ReserveService {
                 });
     }
 
-    private ReserveResponse mapToReserveResponse(Reserve reserve) {
+    public ReserveResponse mapToReserveResponse(Reserve reserve) {
         return ReserveResponse.builder()
                 .id(reserve.getId())
                 .status(reserve.getStatus())

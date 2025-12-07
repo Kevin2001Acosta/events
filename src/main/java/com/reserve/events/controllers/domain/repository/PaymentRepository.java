@@ -13,4 +13,11 @@ public interface PaymentRepository extends MongoRepository<Payment, String> {
      * @return Optional con el pago eliminado si se encuentra
      */
     Optional<Payment> deletePaymentByReserve_Id(String reserveId);
+    /**
+     * Verifica si ya existe un pago para una reserva determinada.
+     *
+     * @param reserveId ID de la reserva
+     * @return true si existe un pago asociado a esa reserva, false en caso contrario
+     */
+    boolean existsByReserve_Id(String reserveId);
 }
