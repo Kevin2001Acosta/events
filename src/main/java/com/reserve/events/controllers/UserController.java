@@ -46,7 +46,7 @@ public class UserController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Usuario logeado exitosamente"),
             @ApiResponse(responseCode = "400", description = "Datos de entrada inválidos"),
-            @ApiResponse(responseCode = "409", description = "Credenciales incorrectas")
+            @ApiResponse(responseCode = "401", description = "Credenciales incorrectas")
     })
     public ResponseEntity<UserLoginResponse> loginUser(@Valid @RequestBody LoginRequest userLoginRequest) {
 

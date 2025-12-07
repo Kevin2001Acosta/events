@@ -7,6 +7,7 @@ import com.reserve.events.controllers.domain.model.EstablishmentType;
 import com.reserve.events.controllers.domain.repository.EstablishmentRepository;
 import com.reserve.events.controllers.dto.EstablishmentRequest;
 import com.reserve.events.controllers.exception.EstablishmentNotFoundException;
+import com.reserve.events.controllers.exception.EstablishmentWithReservationsException;
 import com.reserve.events.controllers.response.EstablishmentResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -155,7 +156,7 @@ public class EstablishmentService {
                         .anyMatch(b -> b.getStatus() == StatusReserve.PROGRAMADA);
 
         if (hasScheduledBookings) {
-            throw new RuntimeException("No se puede eliminar el establecimiento: tiene reservas programadas");
+            throw new EstablishmentWithReservationsException ("No se puede eliminar el establecimiento: tiene reservas programadas");
         }
 
         // Si no hay reservas programadas eliminamos

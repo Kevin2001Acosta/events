@@ -6,8 +6,10 @@ import com.reserve.events.controllers.domain.repository.EventRepository;
 import com.reserve.events.controllers.domain.repository.ReserveRepository;
 import com.reserve.events.controllers.dto.EventRequest;
 import com.reserve.events.controllers.dto.EventResponse;
+import com.reserve.events.controllers.exception.EstablishmentWithReservationsException;
 import com.reserve.events.controllers.exception.EventAlreadyExistsException;
 import com.reserve.events.controllers.exception.EventNotFoundException;
+import com.reserve.events.controllers.exception.EventWithReservationsException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -94,14 +96,21 @@ public class EventService {
                 .imageUrl(event.getImageUrl())
                 .build();
     }
+
+    public EventResponse getEventById(String id) {
+        Event event = eventRepository.findById(id)
+                .orElseThrow(() -> new EventNotFoundException("Evento no encontrado con id: " + id));
+        return mapToEventResponse(event);
+    }
+
     public String deleteEvent(String id) {
         Event event = eventRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Evento no encontrado con ID: " + id));
 
         // Verificar que no tenga reservas activas (PROGRAMADA)
-        long activeReservations = reserveRepository.countByEventIdAndStatus(id, StatusReserve.PROGRAMADA);
-        if (activeReservations > 0) {
-            throw new RuntimeException("No se puede eliminar el evento porque tiene reservas activas asociadas.");
+        Long activeReservations = reserveRepository.countByEventIdAndStatus(id, StatusReserve.PROGRAMADA);
+        if (activeReservations != null && activeReservations > 0) {
+            throw new EventWithReservationsException("No se puede eliminar el evento porque tiene reservas activas asociadas.");
         }
 
         eventRepository.deleteById(id);

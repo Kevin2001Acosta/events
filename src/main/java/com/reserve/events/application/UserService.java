@@ -36,7 +36,7 @@ public class UserService {
     public UserCreatedResponse createUser(UserRequest request){
         // verificar si existe un usuario con el mismo Email
         if(userRepository.existsByEmail(request.getEmail())){
-            throw new UserAlreadyExistsException("Ya existe un usuario con el correo electrónico: " + request.getEmail());
+            throw new UserAlreadyExistsException("Esta dirección de correo electrónico ya está registrada");
         }
 
         // TODO: Hashear la contraseña antes de guardarla
