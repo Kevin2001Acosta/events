@@ -121,7 +121,9 @@ public class SecurityConfig {
                                 "/entertainment",
                                 "/catering",
                                 "/decoration",
-                                "/additional"
+                                "/additional",
+                                "/events",
+                                "/establishments"
                         ).permitAll()
 
                         // ==================== SOLO ADMIN ====================
@@ -147,7 +149,8 @@ public class SecurityConfig {
                         // PUT solo ADMIN: Agregar rutas donde solo el admin puede actualizar
                         .requestMatchers(HttpMethod.PUT,
                                 "/events/{id}",
-                                "/establishments/**"
+                                "/establishments/**",
+                                "/decoration/{id}"
                         ).hasRole("ADMIN")
 
                         // PATCH solo ADMIN: Agregar rutas donde solo el admin puede actualizar parcialmente
@@ -192,7 +195,6 @@ public class SecurityConfig {
 
                         // GET para ambos: Agregar rutas que ambos roles pueden consultar
                         .requestMatchers(HttpMethod.GET,
-                                "/events",
                                 "/establishments/{id}/occupied-dates",
                                 "/reserve",
                                 "/reserve/{id}"

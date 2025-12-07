@@ -53,4 +53,18 @@ public class DecorationController {
     public ResponseEntity<DecorationResponse> getDecorationById(@PathVariable String id) {
         return ResponseEntity.ok(decorationService.getDecorationById(id));
     }
+
+    @PutMapping("/{id}")
+    @Operation(summary = "Actualizar un servicio de decoración existente")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Servicio actualizado exitosamente"),
+            @ApiResponse(responseCode = "400", description = "Datos de entrada inválidos"),
+            @ApiResponse(responseCode = "404", description = "Servicio no encontrado")
+    })
+    public ResponseEntity<DecorationResponse> updateDecoration(
+            @PathVariable String id,
+            @Valid @RequestBody DecorationRequest decorationRequest) {
+        return ResponseEntity.ok(decorationService.updateDecoration(id, decorationRequest));
+    }
+
 }
