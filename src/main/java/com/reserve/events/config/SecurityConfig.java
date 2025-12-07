@@ -121,17 +121,17 @@ public class SecurityConfig {
                                 "/entertainment",
                                 "/catering",
                                 "/decoration",
-                                "/additional",
-                                "/User",
-                                "/User/type/{type}",
-                                "/User/{id}"
+                                "/additional"
                         ).permitAll()
 
                         // ==================== SOLO ADMIN ====================
 
                         // GET solo ADMIN: Agregar rutas que solo el admin puede consultar
                         .requestMatchers(HttpMethod.GET,
-                                "/admin-example-get"
+                                "/admin-example-get",
+                                "/User",
+                                "/User/type/{type}",
+                                "/User/{id}"
                         ).hasRole("ADMIN")
 
                         // POST solo ADMIN: Agregar rutas donde solo el admin puede crear recursos
