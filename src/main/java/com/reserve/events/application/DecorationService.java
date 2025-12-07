@@ -39,6 +39,9 @@ public class DecorationService {
                 .theme(decoration.getTheme())
                 .articles(decoration.getArticles())
                 .cost(decoration.getCost())
+                .scheduledBookings(decoration.getScheduledBookings())
+                .completedBookings(decoration.getCompletedBookings())
+                .cancelledBookings(decoration.getCancelledBookings())
                 .build();
     }
 }

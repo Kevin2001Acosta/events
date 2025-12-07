@@ -165,9 +165,15 @@ public class ReserveService {
         Reserve savedReserve = reserveRepository.save(reserve);
         log.info("Reserva creada con ID: {}", savedReserve.getId());
 
-        // Guardar la reserva en usuario y establecimiento
+        // Guardar la reserva en usuario, establecimiento, evento y decoración (si aplica)
         updatedUserWithNewReserve(savedReserve, user.getId());
         updatedEstablishmentWithNewReserve(savedReserve, request.getEstablishmentId(), userSummary);
+        updatedEventWithNewReserve(savedReserve, request.getEventId(), userSummary, establishmentSummary);
+
+        // Si tiene decoración, agregar la reserva a la decoración
+        if (request.getServices().getDecoration() != null) {
+            updatedDecorationWithNewReserve(savedReserve, request.getServices().getDecoration().getId(), userSummary, eventSummary, establishmentSummary);
+        }
 
         // Crear pago FALTA
 
@@ -299,6 +305,7 @@ public class ReserveService {
         reserva.setTotalCost(costReserveTotal);
 
         Reserve saved = reserveRepository.save(reserva);
+
         // actualizar reserva en scheduledBookings del usuario
         user.getScheduledBookings().stream()
                 .filter(b -> b.getId().equals(saved.getId()))
@@ -309,6 +316,17 @@ public class ReserveService {
                     b.setServices(saved.getServices());
                 });
         userRepository.save(user);
+
+        // actualizar reserva en scheduledBookings del establecimiento
+        updateReserveInEstablishment(saved);
+
+        // actualizar reserva en scheduledBookings del evento
+        updateReserveInEvent(saved);
+
+        // Si tiene decoración, actualizar la reserva en la decoración
+        if (saved.getServices() != null && saved.getServices().getDecoration() != null) {
+            updateReserveInDecoration(saved);
+        }
 
         return mapToReserveResponse(saved);
     }
@@ -335,6 +353,30 @@ public class ReserveService {
         establishment.getScheduledBookings().add(summaryReserve);
         establishmentRepository.save(establishment);
         log.info("Establecimiento '{}' actualizado con la reserva '{}'", establishment.getName(), summaryReserve.getId());
+    }
+
+    private void updatedEventWithNewReserve(Reserve reserve, String eventId, UserSummary user, EstablishmentSummary establishmentSummary) {
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new EventNotFoundException("No existe el evento con id:" + eventId));
+
+        Event.ReserveSummary summaryReserve = createReserveSummaryForEvent(reserve, user, establishmentSummary);
+
+        // Nueva reserva siempre va a scheduledBookings
+        event.getScheduledBookings().add(summaryReserve);
+        eventRepository.save(event);
+        log.info("Evento '{}' actualizado con la reserva '{}'", event.getType(), summaryReserve.getId());
+    }
+
+    private void updatedDecorationWithNewReserve(Reserve reserve, String decorationId, UserSummary user, EventSummary eventSummary, EstablishmentSummary establishmentSummary) {
+        Decoration decoration = decorationRepository.findById(decorationId)
+                .orElseThrow(() -> new ServiceNotFoundException("No existe la decoración con id:" + decorationId));
+
+        Decoration.ReserveSummary summaryReserve = createReserveSummaryForDecoration(reserve, user, eventSummary, establishmentSummary);
+
+        // Nueva reserva siempre va a scheduledBookings
+        decoration.getScheduledBookings().add(summaryReserve);
+        decorationRepository.save(decoration);
+        log.info("Decoración '{}' actualizada con la reserva '{}'", decoration.getTheme(), summaryReserve.getId());
     }
 
     private boolean noServices(ReserveRequest.CoveredServicesRequest services){
@@ -434,6 +476,28 @@ public class ReserveService {
                 .build();
     }
 
+    private Event.ReserveSummary createReserveSummaryForEvent(Reserve reserve, UserSummary user, EstablishmentSummary establishment) {
+        return Event.ReserveSummary.builder()
+                .id(reserve.getId())
+                .status(reserve.getStatus())
+                .user(user)
+                .establishment(establishment)
+                .dates(reserve.getDates())
+                .services(reserve.getServices())
+                .build();
+    }
+
+    private Decoration.ReserveSummary createReserveSummaryForDecoration(Reserve reserve, UserSummary user, EventSummary event, EstablishmentSummary establishment) {
+        return Decoration.ReserveSummary.builder()
+                .id(reserve.getId())
+                .status(reserve.getStatus())
+                .user(user)
+                .event(event)
+                .establishment(establishment)
+                .dates(reserve.getDates())
+                .build();
+    }
+
     @Transactional
     public Reserve cancelarReserva(UserDetails userDetails, String id) {
         Reserve reserva = reserveRepository.findById(id)
@@ -467,7 +531,13 @@ public class ReserveService {
         // Buscar el establecimiento y actualizar su reserva
         updateReserveToCanceledInEstablishment(reserva.getEstablishment().getId(), reserva.getId());
 
+        // Buscar el evento y actualizar su reserva
+        updateReserveToCanceledInEvent(reserva.getEvent().getId(), reserva.getId());
 
+        // Si tiene decoración, actualizar la reserva en la decoración
+        if (reserva.getServices() != null && reserva.getServices().getDecoration() != null) {
+            updateReserveToCanceledInDecoration(reserva.getServices().getDecoration().getId(), reserva.getId());
+        }
 
         return reserveRepository.save(reserva);
     }
@@ -502,6 +572,83 @@ public class ReserveService {
                     // Guardar los cambios en el establecimiento
                     establishmentRepository.save(establishment);
                 });
+    }
+
+    private void updateReserveToCanceledInEvent(String eventId, String reservaId){
+        eventRepository.findById(eventId)
+                .ifPresent(event -> {
+                    // Buscar la reserva en scheduledBookings, actualizar status y mover a cancelledBookings
+                    event.getScheduledBookings().stream()
+                            .filter(booking -> booking.getId().equals(reservaId))
+                            .findFirst()
+                            .ifPresent(booking -> {
+                                booking.setStatus(StatusReserve.CANCELADA);
+                                event.getScheduledBookings().remove(booking);
+                                event.getCancelledBookings().add(booking);
+                            });
+                    // Guardar los cambios en el evento
+                    eventRepository.save(event);
+                });
+    }
+
+    private void updateReserveToCanceledInDecoration(String decorationId, String reservaId){
+        decorationRepository.findById(decorationId)
+                .ifPresent(decoration -> {
+                    // Buscar la reserva en scheduledBookings, actualizar status y mover a cancelledBookings
+                    decoration.getScheduledBookings().stream()
+                            .filter(booking -> booking.getId().equals(reservaId))
+                            .findFirst()
+                            .ifPresent(booking -> {
+                                booking.setStatus(StatusReserve.CANCELADA);
+                                decoration.getScheduledBookings().remove(booking);
+                                decoration.getCancelledBookings().add(booking);
+                            });
+                    // Guardar los cambios en la decoración
+                    decorationRepository.save(decoration);
+                });
+    }
+
+    private void updateReserveInEstablishment(Reserve reserve) {
+        establishmentRepository.findById(reserve.getEstablishment().getId())
+                .ifPresent(establishment -> {
+                    establishment.getScheduledBookings().stream()
+                            .filter(booking -> booking.getId().equals(reserve.getId()))
+                            .findFirst()
+                            .ifPresent(booking -> {
+                                booking.setDates(reserve.getDates());
+                                booking.setServices(reserve.getServices());
+                            });
+                    establishmentRepository.save(establishment);
+                });
+    }
+
+    private void updateReserveInEvent(Reserve reserve) {
+        eventRepository.findById(reserve.getEvent().getId())
+                .ifPresent(event -> {
+                    event.getScheduledBookings().stream()
+                            .filter(booking -> booking.getId().equals(reserve.getId()))
+                            .findFirst()
+                            .ifPresent(booking -> {
+                                booking.setDates(reserve.getDates());
+                                booking.setServices(reserve.getServices());
+                            });
+                    eventRepository.save(event);
+                });
+    }
+
+    private void updateReserveInDecoration(Reserve reserve) {
+        if (reserve.getServices() != null && reserve.getServices().getDecoration() != null) {
+            decorationRepository.findById(reserve.getServices().getDecoration().getId())
+                    .ifPresent(decoration -> {
+                        decoration.getScheduledBookings().stream()
+                                .filter(booking -> booking.getId().equals(reserve.getId()))
+                                .findFirst()
+                                .ifPresent(booking -> {
+                                    booking.setDates(reserve.getDates());
+                                });
+                        decorationRepository.save(decoration);
+                    });
+        }
     }
 
     public ReserveResponse mapToReserveResponse(Reserve reserve) {
