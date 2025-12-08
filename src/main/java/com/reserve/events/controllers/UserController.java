@@ -1,10 +1,12 @@
 package com.reserve.events.controllers;
 
 import com.reserve.events.application.UserService;
+import com.reserve.events.application.ReserveService;
 import com.reserve.events.controllers.dto.LoginRequest;
 import com.reserve.events.controllers.dto.UserRequest;
 import com.reserve.events.controllers.response.UserCreatedResponse;
 import com.reserve.events.controllers.response.UserLoginResponse;
+import com.reserve.events.controllers.response.ReserveResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -13,11 +15,12 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @Validated
 @RestController
@@ -27,6 +30,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class UserController {
 
     private final UserService userService;
+    private final ReserveService reserveService;
 
     @PostMapping("/register")
     @Operation(summary = "Crear un nuevo usuario")
@@ -52,6 +56,17 @@ public class UserController {
 
         UserLoginResponse response = userService.loginUser(userLoginRequest);
         return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+    @GetMapping("/reserves")
+    @Operation(summary = "Obtener las reservas del usuario autenticado (desde user.eventBookings)")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Reservas obtenidas exitosamente"),
+            @ApiResponse(responseCode = "401", description = "No autenticado")
+    })
+    public ResponseEntity<List<ReserveResponse>> getUserReserves(@AuthenticationPrincipal UserDetails userDetails) {
+        List<ReserveResponse> reserves = reserveService.listReservesByUserEmail(userDetails.getUsername());
+        return ResponseEntity.ok(reserves);
     }
 
 }

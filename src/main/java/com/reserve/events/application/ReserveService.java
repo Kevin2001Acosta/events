@@ -177,14 +177,16 @@ public class ReserveService {
 
     /**
      * Lista las reservas del usuario autenticado identificado por su email
+     * Obtiene directamente de user.eventBookings para mejor rendimiento
      */
     public List<ReserveResponse> listReservesByUserEmail(String email) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UserNotFoundException("No existe un usuario con el correo: " + email));
 
-        java.util.List<Reserve> reserves = reserveRepository.findByClientId(user.getId());
-
-        return reserves.stream().map(this::mapToReserveResponse).collect(Collectors.toList());
+        // Obtener reservas directamente del usuario (denormalizado)
+        return user.getEventBookings().stream()
+                .map(this::mapReserveSummaryToResponse)
+                .collect(Collectors.toList());
     }
 
     /**
@@ -299,12 +301,20 @@ public class ReserveService {
         reserva.setTotalCost(costReserveTotal);
 
         Reserve saved = reserveRepository.save(reserva);
-        // actualizar reservas en usuario y establecimiento
-        // actualizar reserva en lista del usuario
+        
+        // Actualizar reserva en lista del usuario (eventBookings)
         user.getEventBookings().stream()
                 .filter(b -> b.getId().equals(saved.getId()))
                 .findFirst()
-                .ifPresent(b -> b.setStatus(saved.getStatus()));
+                .ifPresent(b -> {
+                    b.setGuestNumber(saved.getGuestNumber());
+                    b.setDates(saved.getDates());
+                    b.setComments(saved.getComments());
+                    b.setStatus(saved.getStatus());
+                    b.setTotalCost(saved.getTotalCost());
+                    b.setEstablishment(saved.getEstablishment());
+                    b.setServices(saved.getServices());
+                });
         userRepository.save(user);
 
         return mapToReserveResponse(saved);
@@ -414,6 +424,9 @@ public class ReserveService {
                 .event(reserve.getEvent())
                 .establishment(reserve.getEstablishment())
                 .dates(reserve.getDates())
+                .guestNumber(reserve.getGuestNumber())
+                .totalCost(reserve.getTotalCost())
+                .comments(reserve.getComments())
                 .services(reserve.getServices())
                 .build();
     }
@@ -501,6 +514,24 @@ public class ReserveService {
                 .services(reserve.getServices())
                 .totalCost(reserve.getTotalCost())
                 .comments(reserve.getComments())
+                .build();
+    }
+
+    /**
+     * Convierte un ReserveSummary (embebido en User) a ReserveResponse
+     * Utilizado cuando se obtienen reservas desde user.eventBookings
+     */
+    private ReserveResponse mapReserveSummaryToResponse(ReserveSummary summary) {
+        return ReserveResponse.builder()
+                .id(summary.getId())
+                .status(summary.getStatus())
+                .dates(summary.getDates())
+                .guestNumber(summary.getGuestNumber())
+                .event(summary.getEvent())
+                .establishment(summary.getEstablishment())
+                .services(summary.getServices())
+                .totalCost(summary.getTotalCost())
+                .comments(summary.getComments())
                 .build();
     }
 }

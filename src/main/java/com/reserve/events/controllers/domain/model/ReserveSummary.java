@@ -39,6 +39,15 @@ public class ReserveSummary {
     @Schema(description = "Fecha(s) de reserva", example = "[2025-03-03, 2025-03-04]")
     private List<LocalDate> dates;
 
+    @Schema(description = "Número de invitados", example = "80")
+    private Integer guestNumber;
+
+    @Schema(description = "Costo total de la reserva", example = "900000")
+    private Double totalCost;
+
+    @Schema(description = "Comentarios sobre la reserva")
+    private String comments;
+
     @Schema(description = "Información de los servicios cubiertos de la reserva")
     private CoveredServicesReserve services;
 }
