@@ -10,7 +10,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -50,6 +52,24 @@ public class CateringService {
         return cateringRepository.findById(id)
                 .map(this::mapToCateringResponse)
                 .orElseThrow(() -> new ServiceNotFoundException("Servicio no encontrado con ID: " + id));
+    }
+
+    @Transactional
+    public CateringResponse updateCatering(String id, CateringRequest cateringRequest) {
+        return cateringRepository.findById(id)
+                .map(catering -> {
+                    // Actualizar campos
+                    catering.setDescription(cateringRequest.getDescription());
+                    catering.setCostDish(cateringRequest.getCostDish());
+                    catering.setMenuType(cateringRequest.getMenuType());
+
+                    // Guardar el libro actualizado
+                    Catering updatedCatering = cateringRepository.save(catering);
+                    log.info("Servicio actualizado con ID: {}", id);
+
+                    return mapToCateringResponse(updatedCatering);
+                })
+                .orElseThrow(() -> new ServiceNotFoundException("No se puede actualizar. Servicio no encontrado con ID: " + id));
     }
 
     private CateringResponse mapToCateringResponse(Catering catering){

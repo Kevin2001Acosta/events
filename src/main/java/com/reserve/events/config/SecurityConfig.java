@@ -150,7 +150,10 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT,
                                 "/events/{id}",
                                 "/establishments/**",
-                                "/decoration/{id}"
+                                "/decoration/{id}",
+                                "/additional/{id}",
+                                "/entertainment/{id}",
+                                "/catering/{id}"
                         ).hasRole("ADMIN")
 
                         // PATCH solo ADMIN: Agregar rutas donde solo el admin puede actualizar parcialmente

@@ -11,7 +11,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -56,6 +58,30 @@ public class AdittionalService {
         return adittionalRepository.findById(id)
                 .map(this::mapToAdittionalResponse)
                 .orElseThrow(() -> new ServiceNotFoundException("Servicio no encontrado con ID: " + id));
+    }
+
+    @Transactional
+    public AdittionalResponse updateAdittional(String id, AdittionalRequest adittionalRequest) {
+        return adittionalRepository.findById(id)
+                .map(additional -> {
+
+                    // Actualizar campos
+                    additional.setDescription(adittionalRequest.getDescription());
+                    additional.setCost(adittionalRequest.getCost());
+
+                    // Verificar si el nombre ha cambiado y si ya existe
+                    if (!additional.getName().equals(adittionalRequest.getName()) &&
+                            adittionalRepository.existsByName(adittionalRequest.getName())) {
+                        throw new ServiceAlreadyExistsException("Ya existe un servicio adicional con el nombre: " + adittionalRequest.getName());
+                    }
+                    additional.setName(adittionalRequest.getName());
+
+                    // Guardar el servicio actualizado
+                    Adittional updatedAdittional = adittionalRepository.save(additional);
+                    log.info("Servicio actualizado con ID: {}", id);
+
+                    return mapToAdittionalResponse(updatedAdittional);})
+                .orElseThrow(() -> new ServiceNotFoundException("No se puede actualizar. Servicio adicional no encontrado con ID: " + id));
     }
 
     private AdittionalResponse mapToAdittionalResponse(Adittional adittional) {

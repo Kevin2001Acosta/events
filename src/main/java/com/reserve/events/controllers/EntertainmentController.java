@@ -53,4 +53,17 @@ public class EntertainmentController {
     public ResponseEntity<EntertainmentResponse> getEntertainmentById(@PathVariable String id) {
         return ResponseEntity.ok(entertainmentService.getEntertainmentById(id));
     }
+
+    @PutMapping("/{id}")
+    @Operation(summary = "Actualizar un servicio de entretenimiento existente")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Servicio actualizado exitosamente"),
+            @ApiResponse(responseCode = "400", description = "Datos de entrada inválidos"),
+            @ApiResponse(responseCode = "404", description = "Servicio no encontrado")
+    })
+    public ResponseEntity<EntertainmentResponse> updateEntertainment(
+            @PathVariable String id,
+            @Valid @RequestBody EntertainmentRequest entertainmentRequest) {
+        return ResponseEntity.ok(entertainmentService.updateEntertainment(id, entertainmentRequest));
+    }
 }

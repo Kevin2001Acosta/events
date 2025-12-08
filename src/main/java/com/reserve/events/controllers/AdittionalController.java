@@ -53,4 +53,17 @@ public class AdittionalController {
     public ResponseEntity<AdittionalResponse> getAdittionalById(@PathVariable String id) {
         return ResponseEntity.ok(adittionalService.getAdittionalById(id));
     }
+
+    @PutMapping("/{id}")
+    @Operation(summary = "Actualizar un servicio adicional existente")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Servicio actualizado exitosamente"),
+            @ApiResponse(responseCode = "400", description = "Datos de entrada inválidos"),
+            @ApiResponse(responseCode = "404", description = "Servicio no encontrado")
+    })
+    public ResponseEntity<AdittionalResponse> updateAdittional(
+            @PathVariable String id,
+            @Valid @RequestBody AdittionalRequest adittionalRequest) {
+        return ResponseEntity.ok(adittionalService.updateAdittional(id, adittionalRequest));
+    }
 }
