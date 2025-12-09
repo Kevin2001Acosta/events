@@ -12,6 +12,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -181,7 +183,8 @@ public class ReserveService {
             updatedDecorationWithNewReserve(savedReserve, request.getServices().getDecoration().getId(), userSummary, eventSummary, establishmentSummary);
         }
 
-        // Crear pago FALTA
+        // Crear el pago de la reserva en estado PENDIENTE
+        createPaymentForReserve(savedReserve, userSummary, establishmentSummary);
 
         //Covertir a response y retornar
         return mapToReserveResponse(savedReserve);
@@ -669,6 +672,104 @@ public class ReserveService {
                 .services(reserve.getServices())
                 .totalCost(reserve.getTotalCost())
                 .comments(reserve.getComments())
+                .build();
+    }
+
+    /**
+     * Crea un pago en estado PENDIENTE para la reserva recién creada.
+     */
+    private void createPaymentForReserve(Reserve reserve, UserSummary client, EstablishmentSummary establishment) {
+        // Crear ReserveInfo para el pago
+        Payment.ReserveInfo reserveInfo = Payment.ReserveInfo.builder()
+                .id(reserve.getId())
+                .status(reserve.getStatus())
+                .build();
+
+        // Convertir servicios de reserva a servicios de pago
+        Payment.CoveredServices coveredServices = mapToCoveredServicesPayment(reserve.getServices());
+
+        // Crear descripción del pago
+        String description = "Pago por reserva de " + reserve.getEvent().getType() +
+                             " en " + establishment.getName();
+
+        // Crear el pago
+        Payment payment = Payment.builder()
+                .description(description)
+                .status(PaymentStatus.PENDIENTE)
+                .totalCost(reserve.getTotalCost())
+                .client(client)
+                .reserve(reserveInfo)
+                .establishment(establishment)
+                .coveredServices(coveredServices)
+                .build();
+
+        Payment savedPayment = paymentRepository.save(payment);
+        log.info("Pago creado con ID: {} para la reserva: {}", savedPayment.getId(), reserve.getId());
+    }
+
+    /**
+     * Convierte CoveredServicesReserve a Payment.CoveredServices
+     */
+    private Payment.CoveredServices mapToCoveredServicesPayment(CoveredServicesReserve services) {
+        if (services == null) {
+            return Payment.CoveredServices.builder().build();
+        }
+
+        // Mapear entretenimiento
+        List<Payment.EntertainmentInfo> entertainmentList = new ArrayList<>();
+        if (services.getEntertainment() != null) {
+            for (EntertainmentSummary ent : services.getEntertainment()) {
+                entertainmentList.add(Payment.EntertainmentInfo.builder()
+                        .id(ent.getId())
+                        .name(ent.getName())
+                        .hourlyRate(ent.getTotalCost() / ent.getHours()) // Calcular hourlyRate desde totalCost/hours
+                        .hours(ent.getHours())
+                        .totalCost(ent.getTotalCost())
+                        .build());
+            }
+        }
+
+        // Mapear decoración
+        Payment.Decoration decoration = null;
+        if (services.getDecoration() != null) {
+            decoration = Payment.Decoration.builder()
+                    .id(services.getDecoration().getId())
+                    .articles(services.getDecoration().getArticles())
+                    .cost(services.getDecoration().getCost())
+                    .build();
+        }
+
+        // Mapear catering
+        List<Payment.CateringInfo> cateringList = new ArrayList<>();
+        if (services.getCatering() != null) {
+            for (CateringSummary cat : services.getCatering()) {
+                cateringList.add(Payment.CateringInfo.builder()
+                        .id(cat.getId())
+                        .description(cat.getDescription())
+                        .numberDish(cat.getNumberDish())
+                        .costDish(cat.getTotalCost() / cat.getNumberDish()) // Calcular costDish desde totalCost/numberDish
+                        .totalCost(cat.getTotalCost())
+                        .build());
+            }
+        }
+
+        // Mapear servicios adicionales
+        List<Payment.additionalInfo> additionalList = new ArrayList<>();
+        if (services.getAdditionalServices() != null) {
+            for (AdittionalSummary add : services.getAdditionalServices()) {
+                additionalList.add(Payment.additionalInfo.builder()
+                        .id(add.getId())
+                        .name(add.getName())
+                        .cost(add.getTotalCost() / add.getQuantity()) // Calcular cost unitario
+                        .build());
+            }
+        }
+
+        return Payment.CoveredServices.builder()
+                .entertainment(entertainmentList)
+                .decoration(decoration)
+                .catering(cateringList)
+                .additionalServices(additionalList)
                 .build();
     }
 }
