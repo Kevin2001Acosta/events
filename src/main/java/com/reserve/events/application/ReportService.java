@@ -187,8 +187,7 @@ public class ReportService {
             double amt = cost != null ? cost.doubleValue() : 0.0;
 
             Object establishmentObj = d.get("establishment");
-            if (establishmentObj instanceof Document) {
-                Document establishment = (Document) establishmentObj;
+            if (establishmentObj instanceof Document establishment) {
                 String estId = establishment.getString("id");
                 String estName = establishment.getString("name");
                 acc.put(estId, acc.getOrDefault(estId, 0.0) + amt);
@@ -233,15 +232,13 @@ public class ReportService {
 
         for (Document d : docs) {
             Object covObj = d.get("coveredServices");
-            if (!(covObj instanceof Document)) continue;
-            Document covered = (Document) covObj;
+            if (!(covObj instanceof Document covered)) continue;
 
             // Entertainment list
             Object entObj = covered.get("entertainment");
             if (entObj instanceof List<?>) {
                 for (Object o : (List<?>) entObj) {
-                    if (o instanceof Document) {
-                        Document ent = (Document) o;
+                    if (o instanceof Document ent) {
                         String svcName = ent.getString("name");
                         Number total = ent.get("totalCost") instanceof Number ? (Number) ent.get("totalCost") : null;
                         if (svcName != null) {
@@ -256,8 +253,7 @@ public class ReportService {
             Object catObj = covered.get("catering");
             if (catObj instanceof List<?>) {
                 for (Object o : (List<?>) catObj) {
-                    if (o instanceof Document) {
-                        Document cat = (Document) o;
+                    if (o instanceof Document cat) {
                         String desc = cat.getString("description");
                         Number total = cat.get("totalCost") instanceof Number ? (Number) cat.get("totalCost") : null;
                         if (desc != null) {
@@ -272,8 +268,7 @@ public class ReportService {
             Object addObj = covered.get("additionalServices");
             if (addObj instanceof List<?>) {
                 for (Object o : (List<?>) addObj) {
-                    if (o instanceof Document) {
-                        Document add = (Document) o;
+                    if (o instanceof Document add) {
                         String name = add.getString("name");
                         Number cost = add.get("cost") instanceof Number ? (Number) add.get("cost") : null;
                         if (name != null) {
@@ -286,8 +281,7 @@ public class ReportService {
 
             // Decoration (single)
             Object decObj = covered.get("decoration");
-            if (decObj instanceof Document) {
-                Document dec = (Document) decObj;
+            if (decObj instanceof Document dec) {
                 Number cost = dec.get("cost") instanceof Number ? (Number) dec.get("cost") : null;
                 incomeByServiceType.put("decoration", incomeByServiceType.getOrDefault("decoration", 0.0) + (cost != null ? cost.doubleValue() : 0.0));
             }
