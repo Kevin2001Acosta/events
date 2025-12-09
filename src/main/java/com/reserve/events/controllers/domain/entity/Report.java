@@ -37,6 +37,9 @@ public class Report {
     @Schema(description = "Fecha y hora en que se generó el reporte", example = "2025-12-08T10:00:00Z")
     private LocalDateTime createdAt;
 
+    @Schema(description = "Nombre o descripción del reporte", example = "Reporte de reservas noviembre")
+    private String name;
+
     @NotNull(message = "Los datos del reporte son obligatorios")
     @Schema(description = "Datos específicos del reporte según su tipo")
     private Map<String, Object> data;
