@@ -2,6 +2,7 @@ package com.reserve.events.controllers;
 
 import com.reserve.events.application.PaymentService;
 import com.reserve.events.controllers.dto.PaymentRequest;
+import com.reserve.events.controllers.dto.PaymentUpdateRequest;
 import com.reserve.events.controllers.response.PaymentResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -38,9 +39,11 @@ public class PaymentController {
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
-    // Actualizar un pago existente
+    // Actualizar un pago existente (solo status y descripción)
     @PutMapping("/{id}")
-    @Operation(summary = "Actualizar un pago existente")
+    @Operation(summary = "Actualizar un pago existente",
+               description = "Solo permite actualizar el status y la descripción del pago. " +
+                             "Si el status cambia a COMPLETADO, se envía un comprobante PDF al correo del cliente.")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Pago actualizado exitosamente"),
         @ApiResponse(responseCode = "400", description = "Datos de entrada inválidos"),
@@ -48,8 +51,8 @@ public class PaymentController {
     })
     public ResponseEntity<PaymentResponse> updatePayment(
             @PathVariable String id,
-            @Valid @RequestBody PaymentRequest paymentRequest) {
-        PaymentResponse response = paymentService.updatePayment(id, paymentRequest);
+            @Valid @RequestBody PaymentUpdateRequest paymentUpdateRequest) {
+        PaymentResponse response = paymentService.updatePayment(id, paymentUpdateRequest);
         return ResponseEntity.ok(response);
     }
 
