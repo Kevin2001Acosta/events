@@ -114,7 +114,23 @@ public class SecurityConfig {
                                 "/User/login",
                                 "/User/register",
                                 "/swagger-ui/**",
-                                "/v3/api-docs/**"
+                                "/v3/api-docs/**",
+                                "/*.jpg",
+                                "/*.png"
+                        ).permitAll()
+
+                        .requestMatchers(
+                                "/bodas.jpg",
+                                "/baby.jpg",
+                                "/cumpleanos.jpg",
+                                "/default.jpg",
+                                "/bautizos.jpg",
+                                "/grados.jpg",
+                                "/infantil.jpg",
+                                "/fiesta15.jpg",
+                                "/despedida.jpg",
+                                "/conferencias.jpg",
+                                "/corporativa.jpg"
                         ).permitAll()
 
                         .requestMatchers(HttpMethod.GET,
