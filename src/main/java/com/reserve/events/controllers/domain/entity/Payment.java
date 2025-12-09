@@ -68,7 +68,7 @@ public class Payment {
         private String id;
 
         @NotBlank(message = "El estado de la reserva es obligatorio")
-        @Schema(description = "Estado de la reserva", example = "CONFIRMED")
+        @Schema(description = "Estado de la reserva", example = "PROGRAMADA ,COMPLETADA, CANCELADA")
         private StatusReserve status;
     }
 
