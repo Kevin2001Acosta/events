@@ -1,7 +1,9 @@
 package com.reserve.events.application;
 
 import com.reserve.events.controllers.domain.entity.Payment;
+import com.reserve.events.controllers.domain.entity.User;
 import com.reserve.events.controllers.domain.repository.PaymentRepository;
+import com.reserve.events.controllers.domain.repository.UserRepository;
 import com.reserve.events.controllers.dto.PaymentRequest;
 import com.reserve.events.controllers.dto.PaymentUpdateRequest;
 import com.reserve.events.controllers.response.PaymentResponse;
@@ -14,6 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -23,6 +26,7 @@ import java.util.stream.Collectors;
 public class PaymentService {
 
     private final PaymentRepository paymentRepository;
+    private final UserRepository userRepository;
     private final EmailService emailService;
     private final PaymentPdfService paymentPdfService;
 
@@ -78,6 +82,7 @@ public class PaymentService {
      * Actualiza el estado y/o la descripción del pago.
      * Solo se pueden modificar estos campos. Los demás datos permanecen intactos.
      * Si el pago se marca como COMPLETADO, se envía un comprobante PDF por correo.
+     * También actualiza la información del pago en el usuario.
      */
     @Transactional
     public PaymentResponse updatePayment(String id, PaymentUpdateRequest request) {
@@ -97,12 +102,59 @@ public class PaymentService {
         Payment updatedPayment = paymentRepository.save(existingPayment);
         log.info("Pago actualizado con ID: {}", updatedPayment.getId());
 
+        // Actualizar el pago en el usuario
+        updatePaymentInUser(updatedPayment);
+
         // Si el pago cambió a COMPLETADO, enviar comprobante por correo
         if (request.getStatus() == PaymentStatus.COMPLETADO && previousStatus != PaymentStatus.COMPLETADO) {
             sendPaymentReceiptEmail(updatedPayment);
         }
 
         return mapToPaymentResponse(updatedPayment);
+    }
+
+    /**
+     * Actualiza la información del pago en el usuario correspondiente.
+     */
+    private void updatePaymentInUser(Payment payment) {
+        if (payment.getClient() == null || payment.getClient().getId() == null) {
+            log.warn("No se puede actualizar el pago en usuario: el pago {} no tiene cliente asociado", payment.getId());
+            return;
+        }
+
+        userRepository.findById(payment.getClient().getId()).ifPresent(user -> {
+            if (user.getPayments() == null) {
+                user.setPayments(new ArrayList<>());
+            }
+
+            // Buscar y actualizar el pago existente o agregarlo si no existe
+            boolean paymentFound = false;
+            for (int i = 0; i < user.getPayments().size(); i++) {
+                if (user.getPayments().get(i).getId().equals(payment.getId())) {
+                    user.getPayments().set(i, User.PaymentInfo.builder()
+                            .id(payment.getId())
+                            .status(payment.getStatus())
+                            .description(payment.getDescription())
+                            .totalCost(payment.getTotalCost())
+                            .build());
+                    paymentFound = true;
+                    break;
+                }
+            }
+
+            // Si no se encontró, agregar el pago
+            if (!paymentFound) {
+                user.getPayments().add(User.PaymentInfo.builder()
+                        .id(payment.getId())
+                        .status(payment.getStatus())
+                        .description(payment.getDescription())
+                        .totalCost(payment.getTotalCost())
+                        .build());
+            }
+
+            userRepository.save(user);
+            log.info("Pago {} actualizado en usuario {}", payment.getId(), user.getId());
+        });
     }
 
     /**

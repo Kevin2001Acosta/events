@@ -1,20 +1,26 @@
 package com.reserve.events.application;
 
+import com.itextpdf.io.image.ImageData;
+import com.itextpdf.io.image.ImageDataFactory;
 import com.itextpdf.kernel.colors.ColorConstants;
 import com.itextpdf.kernel.colors.DeviceRgb;
 import com.itextpdf.kernel.pdf.PdfDocument;
 import com.itextpdf.kernel.pdf.PdfWriter;
 import com.itextpdf.layout.Document;
 import com.itextpdf.layout.element.Cell;
+import com.itextpdf.layout.element.Image;
 import com.itextpdf.layout.element.Paragraph;
 import com.itextpdf.layout.element.Table;
+import com.itextpdf.layout.properties.HorizontalAlignment;
 import com.itextpdf.layout.properties.TextAlignment;
 import com.itextpdf.layout.properties.UnitValue;
 import com.reserve.events.controllers.domain.entity.Payment;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
 import java.text.NumberFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -31,6 +37,7 @@ public class PaymentPdfService {
     private static final DeviceRgb HEADER_COLOR = new DeviceRgb(52, 73, 94);
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
     private static final NumberFormat CURRENCY_FORMAT = NumberFormat.getCurrencyInstance(new Locale("es", "CO"));
+    private static final String LOGO_PATH = "static/eventify.png";
 
     /**
      * Genera un PDF con el comprobante de pago.
@@ -43,6 +50,9 @@ public class PaymentPdfService {
             PdfWriter writer = new PdfWriter(baos);
             PdfDocument pdf = new PdfDocument(writer);
             Document document = new Document(pdf);
+
+            // Logo de Eventify
+            addLogo(document);
 
             // Título
             addTitle(document, "COMPROBANTE DE PAGO");
@@ -71,6 +81,30 @@ public class PaymentPdfService {
         } catch (Exception e) {
             log.error("Error al generar PDF para el pago {}: {}", payment.getId(), e.getMessage());
             throw new RuntimeException("Error al generar el comprobante PDF", e);
+        }
+    }
+
+    /**
+     * Agrega el logo de Eventify al documento.
+     */
+    private void addLogo(Document document) {
+        try {
+            ClassPathResource resource = new ClassPathResource(LOGO_PATH);
+            try (InputStream inputStream = resource.getInputStream()) {
+                byte[] logoBytes = inputStream.readAllBytes();
+                ImageData imageData = ImageDataFactory.create(logoBytes);
+                Image logo = new Image(imageData);
+
+                // Escalar el logo a un tamaño apropiado (ancho de 150 puntos)
+                logo.setWidth(150);
+                logo.setHorizontalAlignment(HorizontalAlignment.CENTER);
+                logo.setMarginBottom(15);
+
+                document.add(logo);
+            }
+        } catch (Exception e) {
+            log.warn("No se pudo cargar el logo de Eventify: {}", e.getMessage());
+            // Si no se puede cargar el logo, simplemente no lo agregamos
         }
     }
 
