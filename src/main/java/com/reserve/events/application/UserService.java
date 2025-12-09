@@ -1,7 +1,11 @@
 package com.reserve.events.application;
 
 
+import com.reserve.events.controllers.domain.entity.Event;
+import com.reserve.events.controllers.domain.entity.Reserve;
 import com.reserve.events.controllers.domain.entity.User;
+import com.reserve.events.controllers.domain.model.EventSummary;
+import com.reserve.events.controllers.domain.model.ReserveSummary;
 import com.reserve.events.controllers.domain.repository.UserRepository;
 import com.reserve.events.controllers.dto.LoginRequest;
 import com.reserve.events.controllers.dto.UserRequest;
@@ -9,6 +13,7 @@ import com.reserve.events.controllers.exception.UserAlreadyExistsException;
 import com.reserve.events.controllers.exception.UserNotFoundException;
 import com.reserve.events.controllers.response.UserCreatedResponse;
 import com.reserve.events.controllers.response.UserLoginResponse;
+import com.reserve.events.controllers.response.UserResponse;
 import com.reserve.events.security.jwt.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,6 +24,10 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -36,7 +45,7 @@ public class UserService {
     public UserCreatedResponse createUser(UserRequest request){
         // verificar si existe un usuario con el mismo Email
         if(userRepository.existsByEmail(request.getEmail())){
-            throw new UserAlreadyExistsException("Ya existe un usuario con el correo electrónico: " + request.getEmail());
+            throw new UserAlreadyExistsException("Esta dirección de correo electrónico ya está registrada");
         }
 
         // TODO: Hashear la contraseña antes de guardarla
@@ -100,4 +109,69 @@ public class UserService {
 
     }
 
+    @Transactional(readOnly = true)
+    public List<UserResponse> getAllUsers(){
+        return userRepository.findAll().stream()
+                .map(this::mapToUserResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public UserResponse getUserById(String id){
+        return userRepository.findById(id)
+                .map(this::mapToUserResponse)
+                .orElseThrow(() -> new UserNotFoundException("Usuario no encontrado con ID: " + id));
+    }
+
+    @Transactional(readOnly = true)
+    public List<UserResponse> getAllUsersByType(String type){
+        return userRepository.findByType(type)
+                .stream()
+                .map(this::mapToUserResponse)
+                .collect(Collectors.toList());
+    }
+
+    public UserResponse mapToUserResponse(User user){
+        return UserResponse.builder()
+                .id(user.getId())
+                .fullName(user.getFullName())
+                .email(user.getEmail())
+                .phone(user.getPhone())
+                .city(user.getCity())
+                .type(user.getType())
+                .payments(user.getPayments() != null ? user.getPayments() : Collections.emptyList())
+                .scheduledBookings(
+                        user.getScheduledBookings() != null ?
+                                user.getScheduledBookings().stream()
+                                        .map(this::mapToReserveSummaryResponse)
+                                        .collect(Collectors.toList())
+                                : Collections.emptyList()
+                )
+                .completedBookings(
+                        user.getCompletedBookings() != null ?
+                                user.getCompletedBookings().stream()
+                                        .map(this::mapToReserveSummaryResponse)
+                                        .collect(Collectors.toList())
+                                : Collections.emptyList()
+                )
+                .cancelledBookings(
+                        user.getCancelledBookings() != null ?
+                                user.getCancelledBookings().stream()
+                                        .map(this::mapToReserveSummaryResponse)
+                                        .collect(Collectors.toList())
+                                : Collections.emptyList()
+                )
+                .build();
+    }
+
+    public UserResponse.ReserveSummaryResponse mapToReserveSummaryResponse(ReserveSummary reserve){
+        return UserResponse.ReserveSummaryResponse.builder()
+                .id(reserve.getId())
+                .status(reserve.getStatus())
+                .event(reserve.getEvent())
+                .establishment(reserve.getEstablishment())
+                .dates(reserve.getDates())
+                .services(reserve.getServices())
+                .build();
+    }
 }

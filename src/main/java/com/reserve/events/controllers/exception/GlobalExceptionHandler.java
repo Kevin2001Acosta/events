@@ -6,6 +6,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -64,6 +66,19 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         body.put("message", message);
         body.put("path", request.getDescription(false).replace("uri=", ""));
         return new ResponseEntity<>(body, HttpStatus.FORBIDDEN);
+    }
+
+    // ==================== 401 UNAUTHORIZED ====================
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<Object> handleBadCredentialsException(BadCredentialsException ex, WebRequest request) {
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("timestamp", LocalDateTime.now());
+        body.put("status", HttpStatus.UNAUTHORIZED.value());
+        body.put("error", "Unauthorized");
+        body.put("message", "Credenciales inválidas");
+        body.put("detail", ex.getMessage());
+        body.put("path", request.getDescription(false).replace("uri=", ""));
+        return new ResponseEntity<>(body, HttpStatus.UNAUTHORIZED);
     }
 
     // ==================== 400 BAD REQUEST ====================
@@ -164,7 +179,8 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler({
             ForbiddenActionException.class,
-            ForbiddenException.class
+            ForbiddenException.class,
+            AccessDeniedException.class
     })
     public ResponseEntity<Object> handleForbidden(RuntimeException ex, WebRequest request) {
         return buildForbiddenResponse(request, ex.getMessage());
@@ -197,6 +213,8 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
             EstablishmentDeletionNotAllowedException.class,
             EventDeletionNotAllowedException.class,
             ReservationAlreadyCancelledException.class,
+            EstablishmentWithReservationsException.class,
+            EventWithReservationsException.class,
             ReservationCompletedCannotCancelException.class,
             ResourceConflictException.class
     })

@@ -68,7 +68,7 @@ public class EstablishmentService {
                 .orElseThrow(() -> new EstablishmentNotFoundException("Establecimiento no encontrado con id: " + id));
 
         // Verificar nombre duplicado
-            if (!existing.getName().equals(request.getName()) &&
+        if (!existing.getName().equals(request.getName()) &&
                 establishmentRepository.existsByNameAndActiveTrue(request.getName())) {
             throw new EstablishmentAlreadyExistsException("Ya existe otro establecimiento activo con ese nombre");
         }

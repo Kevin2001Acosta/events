@@ -24,8 +24,8 @@ public interface ReserveRepository extends MongoRepository<Reserve, String> {
      * @param status estado de la reserva
      * @return cantidad de reservas que coinciden con los criterios
      */
-    @Query("{'event.id': ?0, 'status': ?1}")
-    long countByEventIdAndStatus(String eventId, StatusReserve status);
+    @Query(value = "{'event.id': ?0, 'status': ?1}", count = true)
+    Long countByEventIdAndStatus(String eventId, StatusReserve status);
 
     /**
      * Encuentra todas las reservas de un cliente por su id

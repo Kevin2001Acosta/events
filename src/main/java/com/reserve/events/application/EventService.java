@@ -1,5 +1,6 @@
 package com.reserve.events.application;
 
+
 import com.reserve.events.controllers.domain.entity.Event;
 import com.reserve.events.controllers.domain.model.StatusReserve;
 import com.reserve.events.controllers.domain.repository.EventRepository;
@@ -7,19 +8,20 @@ import com.reserve.events.controllers.domain.repository.ReserveRepository;
 import com.reserve.events.controllers.dto.EventRequest;
 import com.reserve.events.controllers.response.EventResponse;
 import com.reserve.events.controllers.exception.EventAlreadyExistsException;
-import com.reserve.events.controllers.exception.EventDeletionNotAllowedException;
+import com.reserve.events.controllers.exception.EventWithReservationsException;
 import com.reserve.events.controllers.exception.EventNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import java.util.Map;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+
 @Service
 @RequiredArgsConstructor
-@Transactional
 public class EventService {
 
     private final EventRepository eventRepository;
@@ -100,14 +102,13 @@ public class EventService {
                 .cancelledBookings(event.getCancelledBookings())
                 .build();
     }
-
     public String deleteEvent(String id) {
         Event event = eventRepository.findById(id)
                 .orElseThrow(() -> new EventNotFoundException("Evento no encontrado con ID: " + id));
 
         long activeReservations = reserveRepository.countByEventIdAndStatus(id, StatusReserve.PROGRAMADA);
         if (activeReservations > 0) {
-            throw new EventDeletionNotAllowedException("No se puede eliminar el evento porque tiene reservas activas asociadas.");
+            throw new EventWithReservationsException("No se puede eliminar el evento porque tiene reservas activas asociadas.");
         }
 
         eventRepository.deleteById(id);
@@ -119,4 +120,13 @@ public class EventService {
                 .map(this::mapToEventResponse)
                 .collect(Collectors.toList());
     }
+
+    // Obtener un evento por su id
+    public EventResponse getEventById(String id) {
+        // Buscamos por id
+        Event event = eventRepository.findById(id)
+                .orElseThrow(() -> new EventNotFoundException("Evento no encontrado"));
+        return mapToEventResponse(event);
+    }
+
 }

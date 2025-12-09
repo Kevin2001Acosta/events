@@ -13,6 +13,6 @@ public interface EstablishmentRepository extends MongoRepository<Establishment, 
     //Retornar establecimientos activos
     List<Establishment> findByActiveTrue();
 
-    //Buscar un establecimiento activo por Id (optional es porque podrpia no tener un valor)
+    //Buscar un establecimiento activo por Id (optional es porque podria no tener un valor)
     Optional<Establishment> findByIdAndActiveTrue(String id);
 }

@@ -117,11 +117,23 @@ public class SecurityConfig {
                                 "/v3/api-docs/**"
                         ).permitAll()
 
+                        .requestMatchers(HttpMethod.GET,
+                                "/entertainment",
+                                "/catering",
+                                "/decoration",
+                                "/additional",
+                                "/events",
+                                "/establishments"
+                        ).permitAll()
+
                         // ==================== SOLO ADMIN ====================
 
                         // GET solo ADMIN: Agregar rutas que solo el admin puede consultar
                         .requestMatchers(HttpMethod.GET,
-                                "/admin-example-get"
+                                "/admin-example-get",
+                                "/User",
+                                "/User/type/{type}",
+                                "/User/{id}"
                         ).hasRole("ADMIN")
 
                         // POST solo ADMIN: Agregar rutas donde solo el admin puede crear recursos
@@ -137,7 +149,11 @@ public class SecurityConfig {
                         // PUT solo ADMIN: Agregar rutas donde solo el admin puede actualizar
                         .requestMatchers(HttpMethod.PUT,
                                 "/events/{id}",
-                                "/establishments/**"
+                                "/establishments/**",
+                                "/decoration/{id}",
+                                "/additional/{id}",
+                                "/entertainment/{id}",
+                                "/catering/{id}"
                         ).hasRole("ADMIN")
 
                         // PATCH solo ADMIN: Agregar rutas donde solo el admin puede actualizar parcialmente
@@ -182,7 +198,6 @@ public class SecurityConfig {
 
                         // GET para ambos: Agregar rutas que ambos roles pueden consultar
                         .requestMatchers(HttpMethod.GET,
-                                "/events",
                                 "/establishments/{id}/occupied-dates",
                                 "/reserve",
                                 "/reserve/{id}"

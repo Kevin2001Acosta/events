@@ -51,4 +51,17 @@ public class CateringController {
     public ResponseEntity<CateringResponse> getCateringById(@PathVariable String id) {
         return ResponseEntity.ok(cateringService.getCateringById(id));
     }
+
+    @PutMapping("/{id}")
+    @Operation(summary = "Actualizar un servicio existente")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Servicio actualizado exitosamente"),
+            @ApiResponse(responseCode = "400", description = "Datos de entrada inválidos"),
+            @ApiResponse(responseCode = "404", description = "Servicio no encontrado")
+    })
+    public ResponseEntity<CateringResponse> updateCatering(
+            @PathVariable String id,
+            @Valid @RequestBody CateringRequest cateringRequest) {
+        return ResponseEntity.ok(cateringService.updateCatering(id, cateringRequest));
+    }
 }
